@@ -1,0 +1,43 @@
+name: Publicar AURĀ en demo.tuwebexpres.com/aura
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aura/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-aura
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_FTP: ${{ secrets.FTP_SERVER != '' }}
+    steps:
+      - name: Aviso si faltan los datos FTP
+        if: env.HAS_FTP != 'true'
+        run: echo "Faltan los secretos FTP_SERVER, FTP_USERNAME y FTP_PASSWORD. No se publica nada."
+
+      - name: Descargar el repositorio
+        if: env.HAS_FTP == 'true'
+        uses: actions/checkout@v4
+
+      - name: Subir por FTP solo los archivos que han cambiado
+        if: env.HAS_FTP == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          security: loose
+          local-dir: ./aura/
+          server-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.DS_Store
