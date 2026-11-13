@@ -652,6 +652,7 @@ img.bottle{height:auto}
 .dlg .vis{overflow:hidden}
 .porthole .center .bottle{width:100%}
 /* Métodos de extracción */
+.chip .cnt{font-size:.78em;opacity:.7;margin-left:4px}
 .diagram svg.flow-v{display:none}
 @media (max-width:700px){.diagram svg.flow-h{display:none}.diagram svg.flow-v{display:block;max-width:420px;margin:0 auto}}
 .method{scroll-margin-top:90px}
@@ -1417,7 +1418,8 @@ document.addEventListener('click', function(e){
   var f = e.target.closest('[data-fav]'); if (f){ e.preventDefault(); toggleFav(f.dataset.fav); return; }
   var o = e.target.closest('[data-oil]'); if (o){ e.preventDefault(); openOil(o.dataset.oil); return; }
   var bl = e.target.closest('[data-blend]'); if (bl){ e.preventDefault(); openBlend(bl.dataset.blend); return; }
-  var tg = e.target.closest('[data-topicgo]'); if (tg){ e.preventDefault(); var dr = document.getElementById('dlg-root'); if (dr) dr.innerHTML = ''; CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:tg.dataset.topicgo}; go('aceites', {cat:true}); return; }
+  var eg = e.target.closest('[data-extgo]'); if (eg){ e.preventDefault(); CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:'', ext:eg.dataset.extgo}; go('aceites', {cat:true}); return; }
+  var tg = e.target.closest('[data-topicgo]'); if (tg){ e.preventDefault(); var dr = document.getElementById('dlg-root'); if (dr) dr.innerHTML = ''; CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:tg.dataset.topicgo, ext:''}; go('aceites', {cat:true}); return; }
   var s = e.target.closest('[data-save]'); if (s){ e.preventDefault(); toggleRitual(s.dataset.save); return; }
   var a = e.target.closest('[data-ask]'); if (a){ e.preventDefault(); go('olia', {ask:a.dataset.ask}); return; }
 });
@@ -2049,7 +2051,9 @@ function topicsForQuery(q){
   return TOPICS.filter(function(t){ return t.syn.concat([t.label]).some(function(w){ var s = normTxt(w); return s.indexOf(n) === 0 || (' ' + n + ' ').indexOf(' ' + s + ' ') >= 0; }); }).map(function(t){ return t.id; });
 }
 var USOS_NOTE = 'Usos tradicionales de bienestar recogidos en la literatura sobre aromaterapia. No son declaraciones de propiedades saludables ni sustituyen a un profesional sanitario. AURĀ no vende aceites. Uso externo: no ingerir.';
-var CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:''};
+var EXTS = [['vapor','Arrastre de vapor',/arrastre de vapor/i],['hidro','Hidrodestilación',/hidrodestil/i],['prensado','Prensado en frío',/prensado/i],['absoluto','Absoluto',/absoluto/i],['oleorresina','De oleorresina',/oleorresina/i]];
+function extOf(o){ for (var i = 0; i < EXTS.length; i++) { if (EXTS[i][2].test(o.method)) return EXTS[i][0]; } return ''; }
+var CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:'', ext:''};
 function catResults(){
   var q = CAT.q.trim().toLowerCase();
   return OILS.filter(function(o){
@@ -2057,6 +2061,7 @@ function catResults(){
     if (CAT.part !== 'Todas') { if (o.part !== CAT.part) return false; }
     if (CAT.onlyFav) { if (!S.favs[o.id]) return false; }
     if (CAT.topic) { if (o.topics.indexOf(CAT.topic) < 0) return false; }
+    if (CAT.ext) { if (extOf(o) !== CAT.ext) return false; }
     if (q) {
       var hit = normTxt(o.name + ' ' + o.latin + ' ' + o.notes.join(' ') + ' ' + o.family).indexOf(normTxt(q)) >= 0;
       if (!hit) { var tq = topicsForQuery(q); hit = tq.some(function(t){ return o.topics.indexOf(t) >= 0; }); }
@@ -2077,6 +2082,7 @@ function renderCat(){
   var pr = document.getElementById('partRow'), fv = document.getElementById('onlyFav');
   if (pr) pr.hidden = CAT.kind === 'mezclas';
   var tr = document.getElementById('topicRow'); if (tr) tr.hidden = CAT.kind === 'mezclas';
+  var er = document.getElementById('extRow'); if (er) er.hidden = CAT.kind === 'mezclas';
   var tn = document.getElementById('topicNote');
   if (tn) { var tqs = CAT.q ? topicsForQuery(CAT.q) : []; var show = CAT.kind === 'sencillos' ? (CAT.topic || tqs.length) : false; tn.hidden = !show; if (show) tn.innerHTML = '<b>' + (CAT.topic ? TOPIC[CAT.topic].label : tqs.map(function(t){ return TOPIC[t].label; }).join(' · ')) + '.</b> ' + USOS_NOTE; }
   if (fv) fv.hidden = CAT.kind === 'mezclas';
@@ -2091,11 +2097,11 @@ function renderCat(){
     return;
   }
   var r = catResults(), g = document.getElementById('catGrid');
-  document.getElementById('catCount').textContent = r.length + (r.length === 1 ? ' esencia' : ' esencias') + (CAT.topic ? ' · uso tradicional: ' + TOPIC[CAT.topic].label.toLowerCase() : '');
+  document.getElementById('catCount').textContent = r.length + (r.length === 1 ? ' esencia' : ' esencias') + (CAT.topic ? ' · uso tradicional: ' + TOPIC[CAT.topic].label.toLowerCase() : '') + (CAT.ext ? ' · extracción: ' + EXTS.filter(function(e){ return e[0] === CAT.ext; })[0][1].toLowerCase() : '');
   g.innerHTML = r.length ? r.map(function(o){
     return '<article class="card"><button class="open" data-oil="' + o.id + '" aria-label="Abrir la ficha de ' + o.name + '"><div class="pic"><div class="plant">' + plant(o.id) + '</div>' + bottle(o) + '</div><div class="body"><h3>' + o.name + '</h3><div class="lat">' + o.latin + '</div><div class="tags"><span class="tag">' + o.family + '</span><span class="tag">' + o.partLong + '</span><span class="tag">' + o.method + '</span></div><p class="small" style="margin:10px 0 0;font-size:.86rem">' + o.aroma + '</p></div></button>' + favBtn(o.id) + '</article>';
   }).join('') : '<div class="empty"><h3 style="font-size:2rem">No hay esencias con estos filtros</h3><p class="lead" style="margin:10px auto 18px">Prueba con otro nombre o quita algún filtro.</p><button class="btn btn-s btn-sm" id="catReset">Quitar filtros</button></div>';
-  var rs = document.getElementById('catReset'); if (rs) rs.onclick = function(){ CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:''}; go('aceites'); };
+  var rs = document.getElementById('catReset'); if (rs) rs.onclick = function(){ CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:'', ext:''}; go('aceites'); };
 }
 VIEWS.aceites = { html:function(opts){
   function chips(key, vals){ return vals.map(function(v){ return '<button class="chip" data-f="' + key + '" data-v="' + v + '" aria-pressed="' + (CAT[key] === v) + '">' + v + '</button>'; }).join(''); }
@@ -2105,6 +2111,7 @@ VIEWS.aceites = { html:function(opts){
   '<section class="wrap"><div class="kind-tabs" role="group" aria-label="Tipo de aceite"><button class="kind" data-kind="sencillos" aria-pressed="' + (CAT.kind === 'sencillos') + '">Aceites sencillos <span>' + OILS.length + '</span></button><button class="kind" data-kind="mezclas" aria-pressed="' + (CAT.kind === 'mezclas') + '">Mezclas <span>' + BLENDS.length + '</span></button></div><div class="toolbar"><label class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#603448" stroke-width="1.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><span class="sr">Buscar esencias</span><input id="catQ" type="search" value="' + CAT.q + '" placeholder="Busca un aceite o un momento (p. ej., descanso)"></label><button class="chip" id="onlyFav" aria-pressed="' + CAT.onlyFav + '">Solo favoritos</button></div>' +
   '<div class="toolbar topic-row" id="topicRow"><span class="small" style="min-width:110px">¿Para qué?</span><div class="filters"><button class="chip" data-topic="" aria-pressed="' + (!CAT.topic) + '">Todos</button>' + TOPICS.map(function(t){ return '<button class="chip" data-topic="' + t.id + '" aria-pressed="' + (CAT.topic === t.id) + '">' + t.label + '</button>'; }).join('') + '</div></div>' +
   '<div class="toolbar"><span class="small" style="min-width:110px">Familia</span><div class="filters">' + chips('fam',['Todas','Floral','Herbal','Cítrico','Amaderado','Especiado','Resinoso']) + '</div></div>' +
+  '<div class="toolbar" id="extRow"><span class="small" style="min-width:110px">Extracción</span><div class="filters"><button class="chip" data-ext="" aria-pressed="' + (!CAT.ext) + '">Todas</button>' + EXTS.map(function(e){ var n = OILS.filter(function(o){ return extOf(o) === e[0]; }).length; return n ? '<button class="chip" data-ext="' + e[0] + '" aria-pressed="' + (CAT.ext === e[0]) + '">' + e[1] + ' <span class="cnt">' + n + '</span></button>' : ''; }).join('') + '</div></div>' +
   '<div class="toolbar" id="partRow"><span class="small" style="min-width:110px">Parte de la planta</span><div class="filters">' + chips('part',['Todas','Flor','Hoja','Fruto','Semilla','Madera','Raíz','Corteza','Resina']) + '</div></div>' +
   '<p class="topic-note" id="topicNote" hidden></p><p class="small" id="catCount" aria-live="polite" style="margin:0 0 16px"></p><div class="grid" id="catGrid"></div></section>';
 }, mount:function(opts){
@@ -2113,6 +2120,7 @@ VIEWS.aceites = { html:function(opts){
   renderCat();
   document.getElementById('catQ').addEventListener('input', function(e){ CAT.q = e.target.value; renderCat(); });
   document.querySelectorAll('[data-kind]').forEach(function(b){ b.addEventListener('click', function(){ CAT.kind = b.dataset.kind; renderCat(); }); });
+  document.querySelectorAll('[data-ext]').forEach(function(b){ b.addEventListener('click', function(){ CAT.ext = b.dataset.ext; document.querySelectorAll('[data-ext]').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); renderCat(); }); });
   document.querySelectorAll('[data-topic]').forEach(function(b){ b.addEventListener('click', function(){ CAT.topic = b.dataset.topic; document.querySelectorAll('[data-topic]').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); track('Uso', CAT.topic || 'todos'); renderCat(); }); });
   document.getElementById('onlyFav').addEventListener('click', function(e){ CAT.onlyFav = !CAT.onlyFav; e.currentTarget.setAttribute('aria-pressed', CAT.onlyFav); renderCat(); });
   document.querySelectorAll('[data-f]').forEach(function(b){ b.addEventListener('click', function(){ CAT[b.dataset.f] = b.dataset.v; document.querySelectorAll('[data-f="' + b.dataset.f + '"]').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); renderCat(); }); });
@@ -2234,7 +2242,7 @@ function methodsPane(){
     rows.map(function(r){ var m = r[0], l = r[1];
       return '<article class="diagram method" id="m-' + m.id + '"><span class="eyebrow">' + m.tag + '</span><h3 style="font-size:2.2rem;margin:6px 0 16px">' + m.name + '</h3>' + flowSVG(m.steps, 'Esquema de ' + m.name + ': ' + m.steps.map(function(s){ return s[1]; }).join(', ')) +
         '<div class="m-facts"><div><b>Se usa para</b><p>' + m.use + '</p></div><div><b>Qué se obtiene</b><p>' + m.res + '</p></div><div class="m-know"><b>¿Sabías que…?</b><p>' + m.fact + '</p></div></div>' +
-        (l.length ? '<div class="m-oils"><b>En el catálogo (' + l.length + (l.length === 1 ? ' aceite' : ' aceites') + ')</b><div class="ut-chips">' + l.slice(0, 14).map(function(o){ return '<button class="chip chip-sm" data-oil="' + o.id + '">' + o.name + '</button>'; }).join('') + (l.length > 14 ? '<span class="small" style="align-self:center">y ' + (l.length - 14) + ' más</span>' : '') + '</div></div>' : '') +
+        (l.length ? '<div class="m-oils"><b>En el catálogo (' + l.length + (l.length === 1 ? ' aceite' : ' aceites') + ')</b><div class="ut-chips">' + l.slice(0, 14).map(function(o){ return '<button class="chip chip-sm" data-oil="' + o.id + '">' + o.name + '</button>'; }).join('') + (l.length > 14 ? '<span class="small" style="align-self:center">y ' + (l.length - 14) + ' más</span>' : '') + '</div><button class="btn btn-s btn-sm" style="margin-top:12px" data-extgo="' + m.id + '">Ver ' + (l.length === 1 ? 'este aceite' : 'los ' + l.length + ' aceites') + ' en la Biblioteca →</button></div>' : '') +
       '</article>'; }).join('') +
     '<div class="diagram"><h3 style="font-size:2rem;margin-bottom:12px">Comparativa rápida</h3><div class="m-table-wrap"><table class="m-table"><thead><tr><th>Método</th><th>Calor</th><th>Para qué plantas</th><th>Resultado</th></tr></thead><tbody>' +
       [['Arrastre de vapor','Sí, vapor','Casi todas','Aceite esencial + hidrolato'],['Hidrodestilación','Sí, agua hirviendo','Resinas, algunos pétalos','Aceite esencial + agua aromática'],['Prensado en frío','No','Cítricos','Aceite esencial de cítrico'],['CO₂ supercrítico','Templado (desde 31 °C)','Especias, semillas, raíces','Extracto CO₂'],['Disolventes','Bajo','Flores delicadas','Absoluto'],['Enfleurage','No','Flores delicadas','Absoluto (histórico)']].map(function(t){ return '<tr>' + t.map(function(c, i){ return i ? '<td>' + c + '</td>' : '<th scope="row">' + c + '</th>'; }).join('') + '</tr>'; }).join('') +
