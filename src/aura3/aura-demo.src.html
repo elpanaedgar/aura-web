@@ -1982,7 +1982,7 @@ function openBlend(id){
   d.querySelector('.close').focus();
 }
 
-/* Usos tradicionales: temas de bienestar extraídos de las fichas de la guía Legacy (información recopilada de D. Gary Young, ed. Seeds of Thyme, 2024).
+/* Usos tradicionales: temas de bienestar extraídos de las fichas de la guía Legacy (referencia interna de trabajo).
    Se guardan solo como temas normalizados, sin copiar el texto. Quedan fuera las enfermedades graves (cáncer, diabetes, infecciones, tensión arterial, etc.). */
 var TOPICS = [
   {id:'sueno', label:'Rutina de descanso', syn:["insomnio", "dormir", "sueño", "descanso", "desvelo", "descansar"]},
@@ -2013,7 +2013,7 @@ function topicsForQuery(q){
   var n = normTxt(q).trim(); if (n.length < 3) return [];
   return TOPICS.filter(function(t){ return t.syn.concat([t.label]).some(function(w){ var s = normTxt(w); return s.indexOf(n) === 0 || (' ' + n + ' ').indexOf(' ' + s + ' ') >= 0; }); }).map(function(t){ return t.id; });
 }
-var USOS_NOTE = 'Usos tradicionales de bienestar descritos por D. Gary Young y sus colaboradores (Seeds of Thyme, 2024). No son declaraciones de propiedades saludables ni sustituyen a un profesional sanitario. AURĀ no vende aceites. Uso externo: no ingerir.';
+var USOS_NOTE = 'Usos tradicionales de bienestar recogidos en la literatura sobre aromaterapia. No son declaraciones de propiedades saludables ni sustituyen a un profesional sanitario. AURĀ no vende aceites. Uso externo: no ingerir.';
 var CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:''};
 function catResults(){
   var q = CAT.q.trim().toLowerCase();
@@ -3173,7 +3173,7 @@ VIEWS.compliance = { html:function(){
     item('Contenido informativo y educativo', 'AURĀ es una plataforma de divulgación sobre aromaterapia y botánica. No vende aceites esenciales ni recibe dinero por recomendar productos o marcas.') +
     item('Sin relación con marcas', 'AURĀ no está vinculada a ningún fabricante ni distribuidor. Los nombres comerciales de las mezclas pertenecen a sus titulares y solo se citan para describir su composición.') +
   '</ul></div><div class="comp-card"><h2>Cómo presentamos los usos</h2><ul>' +
-    item('Usos tradicionales de bienestar', 'Los temas de cada ficha (rutina de descanso, calma, concentración…) resumen usos tradicionales descritos por D. Gary Young y sus colaboradores (Seeds of Thyme, 2024). No copiamos su texto.') +
+    item('Usos tradicionales de bienestar', 'Los temas de cada ficha (rutina de descanso, calma, concentración…) resumen usos tradicionales recogidos en la literatura sobre aromaterapia, redactados por AURĀ.') +
     item('Sin declaraciones de salud', 'No decimos que un aceite cure, trate o prevenga enfermedades, ni prometemos resultados. No nombramos enfermedades en los usos y dejamos fuera cualquier afirmación sobre enfermedades graves.') +
     item('Sin testimonios ni dosis', 'No publicamos testimonios, dosis ni pautas de tratamiento.') +
     item('Nunca por vía oral', 'Todos los usos son externos: difusión ambiental o aplicación diluida sobre la piel. No recomendamos ingerir aceites esenciales.') +
@@ -3181,9 +3181,6 @@ VIEWS.compliance = { html:function(){
     item('Precauciones en cada ficha', 'Cada aceite indica sus precauciones: dilución, fotosensibilidad, embarazo, lactancia, niños o medicación.') +
     item('Consulta profesional', 'Esta información no sustituye el consejo de un profesional sanitario. Si tienes un problema de salud, estás embarazada o tomas medicación, consulta antes.') +
     item('Revisión pendiente', 'Los datos técnicos están pendientes de revisión especializada y se irán corrigiendo.') +
-  '</ul></div><div class="comp-card"><h2>Fuentes</h2><ul>' +
-    item('Datos técnicos y usos tradicionales', 'Información recopilada de las investigaciones de D. Gary Young (Seeds of Thyme, Edición Legacy, 2024).') +
-    item('Composición de las mezclas', 'Guías de producto publicadas por sus fabricantes.') +
   '</ul></div></section>';
 }};
 VIEWS.sobre = { html:function(){
