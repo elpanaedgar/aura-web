@@ -651,6 +651,23 @@ footer p{margin:0}
 img.bottle{height:auto}
 .dlg .vis{overflow:hidden}
 .porthole .center .bottle{width:100%}
+/* Métodos de extracción */
+.diagram svg.flow-v{display:none}
+@media (max-width:700px){.diagram svg.flow-h{display:none}.diagram svg.flow-v{display:block;max-width:420px;margin:0 auto}}
+.method{scroll-margin-top:90px}
+.m-jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+.m-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px}
+.m-facts>div{padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.7);border:1px solid var(--line)}
+.m-facts b{font-weight:500;color:var(--plum)}
+.m-facts p{margin:6px 0 0;font-size:.98rem}
+.m-know{background:rgba(200,164,106,.12)!important}
+.m-oils{margin-top:16px}
+.m-oils b{font-weight:500;color:var(--plum)}
+.m-table-wrap{overflow-x:auto}
+.m-table{width:100%;border-collapse:collapse;min-width:560px;font-size:.98rem}
+.m-table th,.m-table td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.m-table thead th{font-family:Jost,Arial,sans-serif;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.m-table tbody th{font-weight:500;color:var(--plum)}
 /* Compliance */
 .comp-line{margin:12px 0 0;font-size:.92rem;color:var(--plum)}
 .linkbtn{background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -2138,11 +2155,90 @@ function wheelSVG(sel){
 function knowPane(k){
   if (k === 'atlas') return '<div class="plates">' + OILS.map(function(o){ return '<button class="plate" data-oil="' + o.id + '"><div class="pl">' + plant(o.id) + '</div><b>' + o.name + '</b><span class="it">' + o.latin + '</span><p class="small" style="margin:8px 0 0">' + o.origin + ' · ' + o.partLong + '</p></button>'; }).join('') + '</div>';
   if (k === 'familias') return '<div class="wheel-wrap"><div id="wheel">' + wheelSVG('florales') + '</div><div id="famInfo"></div></div>';
-  if (k === 'metodos') return '<div class="diagram"><h3 style="font-size:2rem;margin-bottom:6px">Destilación por arrastre de vapor</h3><p class="small" style="margin:0 0 12px;font-size:.9rem">El método más habitual para flores, hojas y resinas.</p>' + distilSVG() + '</div><div class="diagram"><h3 style="font-size:2rem;margin-bottom:6px">Prensado en frío</h3><p class="small" style="margin:0 0 12px;font-size:.9rem">Propio de los cítricos: el aceite está en la cáscara del fruto.</p>' + pressSVG() + '</div><p class="lead">Existen otros métodos, como la extracción con CO₂ supercrítico o con disolventes (absolutos), que se tratarán en la versión completa.</p>';
+  if (k === 'metodos') return methodsPane();
   if (k === 'historia') return '<ol class="timeline"><li><b>Antigüedad</b><p style="margin:4px 0 0">Egipcios, griegos y romanos utilizaban plantas aromáticas, aceites perfumados y resinas como el incienso en rituales, perfumería y cuidado personal.</p></li><li><b>Siglo XI</b><p style="margin:4px 0 0">Se atribuye al médico persa Avicena el perfeccionamiento de la destilación de plantas aromáticas.</p></li><li><b>1937</b><p style="margin:4px 0 0">El químico francés René-Maurice Gattefossé populariza el término «aromaterapia» con su libro.</p></li><li><b>1977</b><p style="margin:4px 0 0">Robert Tisserand publica <i>The Art of Aromatherapy</i>, una obra clave para su difusión en lengua inglesa.</p></li><li><b>Hoy</b><p style="margin:4px 0 0">La aromaterapia convive con la investigación sobre la composición química y la seguridad de cada aceite.</p></li></ol><p class="small">Resumen divulgativo de demostración, pendiente de revisión con fuentes autorizadas.</p>';
   if (k === 'seguridad') return '<div class="diagram">' + dilSVG() + '</div><div class="pillars" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">' + [['Diluir siempre','Los aceites esenciales se mezclan con un aceite vegetal antes de aplicarlos en la piel.'],['Probar primero','Haz una prueba en una zona pequeña y espera antes de un uso más amplio.'],['Difundir con medida','Estancias ventiladas, periodos cortos y nunca cerca de bebés o mascotas sin consultar.'],['Consultar','En embarazo, lactancia, con niños o con medicación, consulta antes con un profesional sanitario.']].map(function(p){ return '<div class="pillar" style="border-radius:28px;text-align:left"><b style="font-weight:500;font-size:1.4rem;color:var(--plum)">' + p[0] + '</b><p style="margin:8px 0 0">' + p[1] + '</p></div>'; }).join('') + '</div><p class="lead" style="margin-top:24px">Como referencia orientativa para adultos sanos se suelen citar diluciones bajas, en torno al 1 % para el rostro y al 2 % para el cuerpo. Las indicaciones concretas dependen de cada aceite y de cada persona.</p>';
   if (k === 'guias') return GUIDES.map(function(g, i){ var pct = Math.round(g.p / g.l * 100); return '<div class="guide"><div style="flex:1 1 260px"><b style="font-weight:500;font-size:1.35rem;color:var(--plum)">' + g.t + '</b><div class="small">' + g.l + ' lecciones · ' + pct + ' % completado</div></div><div class="bar-p"><i style="width:' + pct + '%"></i></div><button class="btn btn-s btn-sm" data-guide="' + i + '">' + (g.p >= g.l ? 'Repasar' : (g.p ? 'Continuar' : 'Empezar')) + '</button></div>'; }).join('') + '<p class="small">El progreso es una simulación y se pierde al cerrar la página.</p>';
   return '<div class="reserved"><span class="demo-pill">En revisión</span><h3 style="font-size:2.2rem;margin:14px 0 8px">Cómo se elaboran los contenidos</h3><p style="margin:0">Las fichas se redactan a partir de literatura sobre aromaterapia y botánica, y están pendientes de revisión especializada.</p><ul style="margin:14px 0 0;padding-left:20px;color:var(--muted)"><li>Los textos son propios de AURĀ: no se reproducen obras de terceros.</li><li>No se incluyen declaraciones de salud, dosis ni usos por vía oral.</li><li>AURĀ es independiente de cualquier marca comercial.</li></ul></div>';
+}
+/* ---------- MÉTODOS DE EXTRACCIÓN ---------- */
+var MIC = {
+  flame:'<path d="M20 34c-7 0-11-5-11-10 0-6 6-9 6-15 3 2 5 5 5 8 2-2 3-4 3-7 5 4 8 9 8 14 0 6-4 10-11 10z" fill="#F3D9A8" stroke="#B9772E" stroke-width="1.4"/><path d="M20 34c-3 0-5-2-5-5 0-3 3-4 3-7 2 2 5 4 5 7s-1 5-3 5z" fill="#E9A85A"/>',
+  water:'<path d="M6 24c4-3 7 3 11 0s7 3 11 0 6 2 6 2M6 31c4-3 7 3 11 0s7 3 11 0 6 2 6 2" fill="none" stroke="#6A9AB0" stroke-width="1.6" stroke-linecap="round"/><path d="M20 6c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z" fill="#CFE3EC" stroke="#6A9AB0" stroke-width="1.3"/>',
+  steam:'<path d="M12 32c-4-4 4-7 0-11s4-7 0-11M20 32c-4-4 4-7 0-11s4-7 0-11M28 32c-4-4 4-7 0-11s4-7 0-11" fill="none" stroke="#986C88" stroke-width="1.6" stroke-linecap="round"/>',
+  leaf:'<path d="M20 35V14" stroke="#66704F" stroke-width="1.4"/><path d="M20 24c-9 0-12-7-12-13 7 0 12 4 12 13zM20 19c8 0 11-6 11-11-6 0-11 3-11 11z" fill="#B9C79A" stroke="#66704F" stroke-width="1.3"/>',
+  coil:'<path d="M8 8h24M10 14h20M8 20h24M10 26h20M8 32h24" stroke="#6A9AB0" stroke-width="1.6" stroke-linecap="round"/><path d="M32 8c3 0 3 6 0 6M8 14c-3 0-3 6 0 6M32 20c3 0 3 6 0 6M8 26c-3 0-3 6 0 6" fill="none" stroke="#6A9AB0" stroke-width="1.6"/>',
+  drop:'<path d="M20 5c6 8 10 13 10 19a10 10 0 0 1-20 0c0-6 4-11 10-19z" fill="#F3D9A8" stroke="#B9772E" stroke-width="1.4"/><path d="M15 25a5 5 0 0 0 5 5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  layers:'<path d="M9 8h22v26a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2z" fill="#FFF9F5" stroke="#603448" stroke-width="1.3"/><rect x="10" y="12" width="20" height="7" fill="#F3D9A8"/><rect x="10" y="19" width="20" height="16" fill="#CFE3EC"/><path d="M9 19h22" stroke="#B9772E" stroke-width="1.2"/>',
+  citrus:'<circle cx="20" cy="20" r="14" fill="#FBE3A8" stroke="#C9A23B" stroke-width="1.5"/><circle cx="20" cy="20" r="10" fill="#FFF3CF" stroke="#E2C46A" stroke-width="1"/><path d="M20 10v20M10 20h20M13 13l14 14M27 13L13 27" stroke="#E2C46A" stroke-width="1"/>',
+  press:'<rect x="8" y="5" width="24" height="7" rx="2" fill="#E7D3AE" stroke="#603448" stroke-width="1.3"/><path d="M20 12v8" stroke="#603448" stroke-width="1.6"/><path d="M14 20h12l-2 4h-8z" fill="#E7D3AE" stroke="#603448" stroke-width="1.2"/><ellipse cx="20" cy="30" rx="11" ry="5" fill="#FBE3A8" stroke="#C9A23B" stroke-width="1.3"/>',
+  spin:'<circle cx="20" cy="20" r="13" fill="none" stroke="#603448" stroke-width="1.3"/><path d="M20 7a13 13 0 0 1 13 13" fill="none" stroke="#C8A46A" stroke-width="2.4" stroke-linecap="round"/><path d="M33 20l-3-3M33 20l3-3" stroke="#C8A46A" stroke-width="1.6" stroke-linecap="round"/><circle cx="20" cy="20" r="4" fill="#F3D9A8" stroke="#B9772E"/>',
+  co2:'<circle cx="20" cy="20" r="14" fill="#EEF4F7" stroke="#6A9AB0" stroke-width="1.4"/><text x="20" y="25" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-size="12" font-weight="500" fill="#3F6A7E">CO₂</text>',
+  gauge:'<path d="M7 27a13 13 0 1 1 26 0" fill="none" stroke="#603448" stroke-width="1.4"/><path d="M20 27l7-9" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round"/><circle cx="20" cy="27" r="2.4" fill="#B9772E"/><path d="M10 27h3M27 27h3M20 15v3" stroke="#603448" stroke-width="1.2"/>',
+  gas:'<circle cx="13" cy="25" r="4" fill="none" stroke="#6A9AB0" stroke-width="1.4"/><circle cx="24" cy="17" r="5" fill="none" stroke="#6A9AB0" stroke-width="1.4"/><circle cx="29" cy="29" r="3" fill="none" stroke="#6A9AB0" stroke-width="1.4"/><path d="M10 10l3 3M30 6l-2 3" stroke="#6A9AB0" stroke-width="1.4" stroke-linecap="round"/>',
+  flower:'<g fill="#F4C6D2" stroke="#B0607A" stroke-width="1.1"><ellipse cx="20" cy="11" rx="5" ry="7"/><ellipse cx="20" cy="29" rx="5" ry="7"/><ellipse cx="11" cy="20" rx="7" ry="5"/><ellipse cx="29" cy="20" rx="7" ry="5"/></g><circle cx="20" cy="20" r="4" fill="#E9C46A"/>',
+  flask:'<path d="M16 6h8M17 6v9l-8 15a3 3 0 0 0 3 4h16a3 3 0 0 0 3-4l-8-15V6" fill="#FFF9F5" stroke="#603448" stroke-width="1.3"/><path d="M12 27h16l2 4a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2z" fill="#D9CDEB"/>',
+  wax:'<rect x="7" y="16" width="26" height="16" rx="5" fill="#F6E7C8" stroke="#B9772E" stroke-width="1.3"/><path d="M11 16c0-4 4-6 9-6s9 2 9 6" fill="none" stroke="#B9772E" stroke-width="1.2"/><path d="M12 23h16M12 27h10" stroke="#D9B98A" stroke-width="1.2"/>',
+  snow:'<path d="M20 6v28M8 13l24 14M32 13L8 27" stroke="#6A9AB0" stroke-width="1.5" stroke-linecap="round"/><path d="M17 9l3 3 3-3M17 31l3-3 3 3" fill="none" stroke="#6A9AB0" stroke-width="1.2"/>',
+  bottle:'<rect x="15" y="5" width="10" height="6" rx="1.5" fill="#E7D3AE" stroke="#603448" stroke-width="1.2"/><path d="M13 13h14a2 2 0 0 1 2 2v17a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V15a2 2 0 0 1 2-2z" fill="#B9772E" stroke="#603448" stroke-width="1.2"/><rect x="13.5" y="19" width="13" height="9" rx="1.5" fill="#FBEFF2"/>',
+  glass:'<rect x="6" y="9" width="28" height="22" rx="3" fill="#F2F6F7" stroke="#6A9AB0" stroke-width="1.3"/><rect x="9" y="22" width="22" height="6" rx="2" fill="#F6E7C8" stroke="#D9B98A"/><g fill="#F4C6D2" stroke="#B0607A" stroke-width=".9"><circle cx="14" cy="19" r="3"/><circle cx="21" cy="18" r="3"/><circle cx="27" cy="19" r="3"/></g>',
+  clock:'<circle cx="20" cy="20" r="13" fill="#FFF9F5" stroke="#603448" stroke-width="1.4"/><path d="M20 12v8l6 4" stroke="#B9772E" stroke-width="1.8" stroke-linecap="round" fill="none"/>'
+};
+var MID = 0;
+function flowSVG(steps, label){
+  var n = steps.length, id = 'mf' + (MID++);
+  var W = 880, gap = 34, bw = (W - gap * (n - 1)) / n;
+  var h = '<svg class="flow-h" viewBox="0 0 ' + W + ' 196" role="img" aria-label="' + label + '"><defs><marker id="' + id + 'a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#986C88"/></marker></defs>' +
+    steps.map(function(s, i){ var x = i * (bw + gap), cx = x + bw / 2;
+      return '<g><rect x="' + (x + 1) + '" y="8" width="' + (bw - 2) + '" height="180" rx="22" fill="' + (i === n - 1 ? '#FBF3E3' : '#FBEFF2') + '" stroke="#C8A46A"/>' +
+        '<circle cx="' + cx + '" cy="58" r="34" fill="#FFF9F5" stroke="rgba(200,164,106,.6)"/><g transform="translate(' + (cx - 20) + ' 38)">' + MIC[s[0]] + '</g>' +
+        '<text x="' + (x + 18) + '" y="30" font-family="Jost, Arial, sans-serif" font-size="12" fill="#986C88">' + (i + 1) + '</text>' +
+        '<text x="' + cx + '" y="124" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="21" fill="#603448">' + s[1] + '</text>' +
+        wrapLines(s[2], Math.max(14, Math.floor(bw / 7.2))).map(function(l, k){ return '<text x="' + cx + '" y="' + (148 + k * 16) + '" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-size="12" fill="#6B4E5E">' + l + '</text>'; }).join('') +
+        (i < n - 1 ? '<path d="M' + (x + bw + 4) + ' 98 h' + (gap - 8) + '" stroke="#986C88" stroke-width="1.4" marker-end="url(#' + id + 'a)"/>' : '') + '</g>'; }).join('') + '</svg>';
+  var VH = n * 96 + (n - 1) * 18;
+  var v = '<svg class="flow-v" viewBox="0 0 340 ' + VH + '" role="img" aria-label="' + label + '"><defs><marker id="' + id + 'b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#986C88"/></marker></defs>' +
+    steps.map(function(s, i){ var y = i * 114;
+      return '<g><rect x="1" y="' + (y + 1) + '" width="338" height="94" rx="20" fill="' + (i === n - 1 ? '#FBF3E3' : '#FBEFF2') + '" stroke="#C8A46A"/><circle cx="50" cy="' + (y + 48) + '" r="30" fill="#FFF9F5" stroke="rgba(200,164,106,.6)"/><g transform="translate(30 ' + (y + 28) + ')">' + MIC[s[0]] + '</g>' +
+        '<text x="96" y="' + (y + 40) + '" font-family="Cormorant Garamond, Georgia, serif" font-size="21" fill="#603448">' + (i + 1) + '. ' + s[1] + '</text>' +
+        wrapLines(s[2], 32).map(function(l, k){ return '<text x="96" y="' + (y + 62 + k * 16) + '" font-family="Jost, Arial, sans-serif" font-size="12.5" fill="#6B4E5E">' + l + '</text>'; }).join('') +
+        (i < n - 1 ? '<path d="M50 ' + (y + 96) + ' v14" stroke="#986C88" stroke-width="1.4" marker-end="url(#' + id + 'b)"/>' : '') + '</g>'; }).join('') + '</svg>';
+  return h + v;
+}
+function wrapLines(t, max){ var w = t.split(' '), out = [], cur = ''; w.forEach(function(x){ if ((cur + ' ' + x).trim().length > max) { if (cur) out.push(cur); cur = x; } else cur = (cur + ' ' + x).trim(); }); if (cur) out.push(cur); return out.slice(0, 3); }
+var METHODS = [
+  {id:'vapor', name:'Destilación por arrastre de vapor', tag:'El método más habitual', match:/arrastre de vapor/i,
+   steps:[['flame','Caldera','El agua hierve y produce vapor'],['leaf','Planta','El vapor atraviesa la planta y libera sus aromas'],['coil','Condensador','El vapor se enfría y vuelve a ser líquido'],['layers','Separador','El aceite flota sobre el agua floral']],
+   use:'Hojas, flores, maderas, raíces, semillas y resinas.', res:'Aceite esencial y, como segundo producto, el hidrolato o agua floral.', fact:'El agua que queda en el separador también se aprovecha: es el hidrolato, como el agua de rosas o el agua de lavanda.'},
+  {id:'hidro', name:'Hidrodestilación', tag:'La forma tradicional del alambique', match:/hidrodestil/i,
+   steps:[['water','Agua y planta','La planta se sumerge directamente en agua'],['flame','Ebullición','Al hervir, el vapor arrastra los aromas'],['coil','Condensador','El vapor se enfría'],['layers','Separador','Se separan el aceite y el agua']],
+   use:'Resinas y materiales que se apelmazan con el vapor, y algunos pétalos.', res:'Aceite esencial y agua aromática.', fact:'Es la técnica de los alambiques más antiguos: la planta hierve dentro del agua en lugar de recibir el vapor desde abajo.'},
+  {id:'prensado', name:'Prensado en frío', tag:'El método de los cítricos', match:/prensado/i,
+   steps:[['citrus','Cáscara','El aceite está en pequeñas bolsas de la piel del fruto'],['press','Prensado','Se raspa y se presiona la cáscara, sin calor'],['spin','Centrifugado','Se separa el aceite del zumo y del agua'],['bottle','Filtrado','El aceite se filtra y se envasa']],
+   use:'Solo cítricos: limón, naranja, lima, mandarina, pomelo, bergamota…', res:'Aceite esencial de cítrico (a veces llamado «esencia»).', fact:'Algunos cítricos prensados, como la bergamota o la lima, contienen sustancias que aumentan la sensibilidad de la piel al sol.'},
+  {id:'co2', name:'Extracción con CO₂ supercrítico', tag:'La técnica más moderna', match:/co2|co₂/i,
+   steps:[['gauge','Presión','El CO₂ se comprime y se templa por encima de 31 °C y 74 bar'],['co2','CO₂ supercrítico','Se comporta a la vez como un gas y un líquido'],['leaf','Planta','Atraviesa la planta y disuelve sus aromas'],['gas','Descompresión','El CO₂ vuelve a ser gas, se va y deja el extracto']],
+   use:'Especias, semillas, raíces y resinas: jengibre, pimienta, incienso, cardamomo…', res:'Un extracto CO₂, más parecido al aroma de la planta y sin restos de disolvente.', fact:'Trabaja a temperaturas bajas, así que conserva moléculas que el calor de la destilación alteraría. En el catálogo de AURĀ todavía no hay extractos CO₂.'},
+  {id:'absoluto', name:'Extracción con disolventes (absolutos)', tag:'Para flores muy delicadas', match:/absoluto/i,
+   steps:[['flower','Flores','Flores que no soportan el calor, como el jazmín'],['flask','Disolvente','Un disolvente arrastra los aromas de las flores'],['wax','Concreto','Queda una pasta cerosa llamada «concreto»'],['snow','Alcohol y frío','Se lava con alcohol y se enfría para separar las ceras'],['drop','Absoluto','Al evaporar el alcohol queda el absoluto']],
+   use:'Jazmín, tuberosa, mimosa y otras flores delicadas.', res:'Un absoluto: muy aromático, usado sobre todo en perfumería.', fact:'Técnicamente un absoluto no es un aceite esencial, y puede conservar trazas del disolvente.'},
+  {id:'enfleurage', name:'Enfleurage', tag:'Un método histórico', match:null,
+   steps:[['glass','Placas con grasa','Las flores se colocan sobre grasa en placas de vidrio'],['clock','Días y semanas','Se cambian las flores hasta que la grasa se satura de aroma'],['flask','Alcohol','La «pomada» aromática se lava con alcohol'],['drop','Absoluto','Al evaporar el alcohol queda el aroma concentrado']],
+   use:'Flores delicadas, sobre todo jazmín y tuberosa.', res:'Absoluto de enfleurage.', fact:'Se hizo famoso en Grasse (Francia), la capital del perfume. Hoy apenas se usa porque es muy lento y caro.'}
+];
+function methodsPane(){
+  function oilsFor(m){ if (!m.match) return []; return OILS.filter(function(o){ return m.match.test(o.method); }); }
+  var rows = METHODS.map(function(m){ var l = oilsFor(m); return [m, l]; });
+  return '<p class="lead" style="margin-bottom:18px">Los aceites esenciales se obtienen de distintas partes de la planta. El método depende de lo delicada que sea y de dónde guarda su aroma.</p>' +
+    '<div class="m-jump">' + METHODS.map(function(m){ return '<button class="chip" data-mjump="' + m.id + '">' + m.name.replace(/ \(.*\)/, '') + '</button>'; }).join('') + '</div>' +
+    rows.map(function(r){ var m = r[0], l = r[1];
+      return '<article class="diagram method" id="m-' + m.id + '"><span class="eyebrow">' + m.tag + '</span><h3 style="font-size:2.2rem;margin:6px 0 16px">' + m.name + '</h3>' + flowSVG(m.steps, 'Esquema de ' + m.name + ': ' + m.steps.map(function(s){ return s[1]; }).join(', ')) +
+        '<div class="m-facts"><div><b>Se usa para</b><p>' + m.use + '</p></div><div><b>Qué se obtiene</b><p>' + m.res + '</p></div><div class="m-know"><b>¿Sabías que…?</b><p>' + m.fact + '</p></div></div>' +
+        (l.length ? '<div class="m-oils"><b>En el catálogo (' + l.length + (l.length === 1 ? ' aceite' : ' aceites') + ')</b><div class="ut-chips">' + l.slice(0, 14).map(function(o){ return '<button class="chip chip-sm" data-oil="' + o.id + '">' + o.name + '</button>'; }).join('') + (l.length > 14 ? '<span class="small" style="align-self:center">y ' + (l.length - 14) + ' más</span>' : '') + '</div></div>' : '') +
+      '</article>'; }).join('') +
+    '<div class="diagram"><h3 style="font-size:2rem;margin-bottom:12px">Comparativa rápida</h3><div class="m-table-wrap"><table class="m-table"><thead><tr><th>Método</th><th>Calor</th><th>Para qué plantas</th><th>Resultado</th></tr></thead><tbody>' +
+      [['Arrastre de vapor','Sí, vapor','Casi todas','Aceite esencial + hidrolato'],['Hidrodestilación','Sí, agua hirviendo','Resinas, algunos pétalos','Aceite esencial + agua aromática'],['Prensado en frío','No','Cítricos','Aceite esencial de cítrico'],['CO₂ supercrítico','Templado (desde 31 °C)','Especias, semillas, raíces','Extracto CO₂'],['Disolventes','Bajo','Flores delicadas','Absoluto'],['Enfleurage','No','Flores delicadas','Absoluto (histórico)']].map(function(t){ return '<tr>' + t.map(function(c, i){ return i ? '<td>' + c + '</td>' : '<th scope="row">' + c + '</th>'; }).join('') + '</tr>'; }).join('') +
+    '</tbody></table></div></div>';
 }
 function distilSVG(){
   var box = function(x, t1, t2){ return '<g><rect x="' + x + '" y="40" width="150" height="90" rx="18" fill="#FBEFF2" stroke="#C8A46A"/><text x="' + (x+75) + '" y="80" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="22" fill="#603448">' + t1 + '</text><text x="' + (x+75) + '" y="104" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-size="12" fill="#6B4E5E">' + t2 + '</text></g>'; };
@@ -2175,6 +2271,7 @@ VIEWS.conocimiento = { html:function(){
       p.addEventListener('click', function(e){ var s = e.target.closest('[data-fam]'); if (s){ document.getElementById('wheel').innerHTML = wheelSVG(s.dataset.fam); famInfo(s.dataset.fam); } });
       p.addEventListener('keydown', function(e){ var s = e.target.closest('[data-fam]'); if (s) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); s.dispatchEvent(new MouseEvent('click', {bubbles:true})); } } });
     }
+    if (k === 'metodos') p.addEventListener('click', function(e){ var b = e.target.closest('[data-mjump]'); if (b){ var el = document.getElementById('m-' + b.dataset.mjump); if (el) el.scrollIntoView({behavior:REDUCED ? 'auto' : 'smooth', block:'start'}); } });
     if (k === 'guias') p.addEventListener('click', function(e){ var b = e.target.closest('[data-guide]'); if (b){ var g = GUIDES[+b.dataset.guide]; g.p = Math.min(g.l, g.p + 1); toast(g.p >= g.l ? 'Guía completada (simulación)' : 'Lección ' + g.p + ' de ' + g.l + ' completada (simulación)'); show('guias'); } });
   }
   document.querySelectorAll('[data-k]').forEach(function(b){ b.addEventListener('click', function(){ show(b.dataset.k); }); });
