@@ -651,6 +651,13 @@ footer p{margin:0}
 img.bottle{height:auto}
 .dlg .vis{overflow:hidden}
 .porthole .center .bottle{width:100%}
+/* Usos tradicionales */
+.topic-row .filters{row-gap:8px}
+@media (max-width:760px){.topic-row .filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;margin-right:-16px;padding-right:16px;scrollbar-width:none}.topic-row .filters::-webkit-scrollbar{display:none}.topic-row .chip{flex:0 0 auto}}
+.topic-note{margin:0 0 14px;padding:12px 16px;border-radius:14px;background:rgba(132,84,136,.08);border:1px solid var(--line);font-size:.92rem;line-height:1.5}
+.usos-trad{margin:16px 0 14px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.6);border:1px solid var(--line)}
+.ut-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip-sm{min-height:34px;padding:0 12px;font-size:.92rem}
 /* Biblioteca: 3D arriba, catálogo abajo */
 .lib-h{font-size:clamp(2rem,4vw,2.8rem)}
 .lib-top{margin:26px 0 18px}.lib-top .lead{margin-top:8px;max-width:640px}
@@ -1386,6 +1393,7 @@ document.addEventListener('click', function(e){
   var f = e.target.closest('[data-fav]'); if (f){ e.preventDefault(); toggleFav(f.dataset.fav); return; }
   var o = e.target.closest('[data-oil]'); if (o){ e.preventDefault(); openOil(o.dataset.oil); return; }
   var bl = e.target.closest('[data-blend]'); if (bl){ e.preventDefault(); openBlend(bl.dataset.blend); return; }
+  var tg = e.target.closest('[data-topicgo]'); if (tg){ e.preventDefault(); var dr = document.getElementById('dlg-root'); if (dr) dr.innerHTML = ''; CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:tg.dataset.topicgo}; go('aceites', {cat:true}); return; }
   var s = e.target.closest('[data-save]'); if (s){ e.preventDefault(); toggleRitual(s.dataset.save); return; }
   var a = e.target.closest('[data-ask]'); if (a){ e.preventDefault(); go('olia', {ask:a.dataset.ask}); return; }
 });
@@ -1411,10 +1419,11 @@ function openOil(id){
    '<h2 id="dlgT" style="font-size:3.2rem;margin-top:12px">' + o.name + '</h2><div class="it" style="font-size:1.3rem">' + o.latin + '</div>' +
    '<p style="margin:14px 0 0">' + o.aroma + '.</p>' +
    '<dl class="facts"><div><dt>Familia aromática</dt><dd>' + o.family + '</dd></div>' + (o.botFam ? '<div><dt>Familia botánica</dt><dd>' + o.botFam + '</dd></div>' : '') + '<div><dt>Parte de la planta</dt><dd>' + o.partLong + '</dd></div><div><dt>Método de extracción</dt><dd>' + o.method + '</dd></div><div' + (o.botFam ? ' style="grid-column:1/-1"' : '') + '><dt>Procedencia</dt><dd>' + o.origin + '</dd></div>' + (o.cons ? '<div style="grid-column:1/-1"><dt>Componentes principales</dt><dd>' + o.cons + '</dd></div>' : '') + '</dl>' +
+   (o.topics.length ? '<div class="usos-trad"><b style="font-weight:500;color:var(--plum)">Usos tradicionales</b><div class="ut-chips">' + o.topics.map(function(t){ return '<button class="chip chip-sm" data-topicgo="' + t + '">' + TOPIC[t].label + '</button>'; }).join('') + '</div><p class="small" style="margin:8px 0 0">' + USOS_NOTE + '</p></div>' : '') +
    '<b style="font-weight:500;color:var(--plum)">Formas de uso</b><ul style="margin:6px 0 0;padding-left:20px">' + o.uses.map(function(u){ return '<li>' + u + '</li>'; }).join('') + '</ul>' +
    '<div class="caution"><b style="font-weight:600">Precauciones.</b> ' + o.caution + ' En embarazo, lactancia, con niños o si tomas medicación, consulta antes con un profesional sanitario.</div>' +
    '<div class="acts">' + favBtn(id).replace('class="fav"','class="fav" style="width:50px;height:50px"') + (S.favs[id] ? '<button class="btn btn-p btn-sm" data-go="aceites" data-opt="' + id + '">Ver en 3D</button>' : '') + '<button class="btn btn-s btn-sm" data-ask="' + (id === 'lavanda' ? 'lavandin' : 'diluir') + '">Preguntar a Olia</button></div>' +
-   '<p class="small" style="margin-top:14px">' + (o.review ? 'Datos técnicos de referencia, pendientes de revisión especializada. Sin usos de salud ni ingestión.' : 'Contenido orientativo de demostración, pendiente de revisión con fuentes autorizadas.') + '</p></div></div></div>';
+   '<p class="small" style="margin-top:14px">' + (o.review ? 'Datos técnicos de referencia, pendientes de revisión especializada. Sin ingestión.' : 'Contenido orientativo de demostración, pendiente de revisión con fuentes autorizadas.') + '</p></div></div></div>';
   var d = root.querySelector('.dlg'), prev = document.activeElement;
   function close(){ root.innerHTML = ''; document.removeEventListener('keydown', key); if (prev) prev.focus(); }
   function key(e){ if (e.key === 'Escape') close(); }
@@ -1981,14 +1990,52 @@ function openBlend(id){
   d.querySelector('.close').focus();
 }
 
-var CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos'};
+/* Usos tradicionales: temas de bienestar extraídos de las fichas de la guía Legacy (información recopilada de D. Gary Young, ed. Seeds of Thyme, 2024).
+   Se guardan solo como temas normalizados, sin copiar el texto. Quedan fuera las enfermedades graves (cáncer, diabetes, infecciones, tensión arterial, etc.). */
+var TOPICS = [
+  {id:'sueno', label:'Descanso y sueño', syn:["insomnio", "dormir", "sueño", "descanso", "desvelo", "descansar"]},
+  {id:'estres', label:'Estrés y nervios', syn:["estrés", "ansiedad", "nervios", "agobio", "relajación", "relajar", "calma", "tensión"]},
+  {id:'animo', label:'Ánimo y emociones', syn:["ánimo", "tristeza", "depresión", "bajón", "emociones", "alegría", "desánimo"]},
+  {id:'cabeza', label:'Dolor de cabeza', syn:["dolor de cabeza", "cabeza", "migraña", "jaqueca", "cefalea"]},
+  {id:'mente', label:'Concentración y memoria', syn:["concentración", "memoria", "estudiar", "estudio", "atención", "claridad mental"]},
+  {id:'energia', label:'Energía y cansancio', syn:["cansancio", "energía", "fatiga", "agotamiento", "vitalidad"]},
+  {id:'respira', label:'Respiración y resfriados', syn:["respiración", "respirar", "resfriado", "catarro", "tos", "congestión", "garganta", "nariz", "gripe", "mocos"]},
+  {id:'musculos', label:'Músculos y articulaciones', syn:["músculos", "muscular", "dolor muscular", "articulaciones", "contractura", "espalda", "calambres", "rodilla", "artritis", "reuma", "agujetas"]},
+  {id:'digestion', label:'Digestión', syn:["digestión", "gases", "estómago", "hinchazón", "estreñimiento", "indigestión", "barriga", "tripa", "digestiones pesadas"]},
+  {id:'nauseas', label:'Náuseas y mareos', syn:["náuseas", "mareo", "mareos", "vómitos"]},
+  {id:'piel', label:'Cuidado de la piel', syn:["piel", "acné", "granos", "arrugas", "cicatrices", "eccema", "manchas", "estrías"]},
+  {id:'heridas', label:'Cortes y rozaduras leves', syn:["heridas", "cortes", "rozaduras", "quemaduras"]},
+  {id:'cabello', label:'Cabello y cuero cabelludo', syn:["cabello", "pelo", "caspa", "caída del cabello"]},
+  {id:'insectos', label:'Insectos y picaduras', syn:["mosquitos", "insectos", "picaduras", "repelente", "piojos"]},
+  {id:'ciclo', label:'Ciclo menstrual', syn:["regla", "menstruación", "menopausia", "sofocos", "premenstrual"]},
+  {id:'hongos', label:'Pie de atleta y hongos', syn:["hongos", "pie de atleta", "uñas"]},
+  {id:'boca', label:'Boca y encías', syn:["boca", "encías", "aliento", "dientes"]},
+  {id:'hogar', label:'Limpieza y aire del hogar', syn:["limpieza", "limpiar", "casa", "hogar", "aire", "ambiente"]},
+  {id:'meditacion', label:'Meditación y calma interior', syn:["meditación", "meditar", "yoga", "espiritual", "oración"]},
+  {id:'circulacion', label:'Circulación y piernas cansadas', syn:["circulación", "piernas cansadas", "varices", "piernas"]}
+];
+var TOPIC = {}; TOPICS.forEach(function(t){ TOPIC[t.id] = t; });
+var USOS = {"angelica":["sueno","estres","respira","musculos","digestion","ciclo"],"anis":["animo","energia","musculos","digestion"],"ericifolia":["estres","animo","respira","piel","cabello"],"albahaca":["cabeza","energia","respira","musculos","insectos"],"bergamota":["sueno","estres","animo","piel","hogar"],"pimienta":["estres","mente","energia","musculos","digestion","insectos","hongos"],"picea-negra":["animo","energia","respira","musculos","hongos","meditacion"],"cipres-azul":["piel"],"picea-azul":["estres","animo","respira","insectos","meditacion"],"tanaceto-azul":["estres","animo","piel","heridas","insectos","hongos"],"milenrama":["energia","piel","ciclo","meditacion","circulacion"],"ho":["sueno","estres","respira","musculos","heridas"],"alcaravea":["digestion","nauseas","insectos"],"cardamomo":["animo","cabeza","mente","energia","respira","musculos","digestion"],"zanahoria":["piel"],"casia":["estres","animo","hongos","hogar","meditacion"],"cedro":["sueno","estres","animo","mente","piel","cabello","insectos","hogar"],"apio":["musculos","digestion","nauseas","insectos"],"cilantro":["sueno","estres","digestion","piel","hongos","hogar"],"canela":["respira","digestion"],"jara":["estres","animo","musculos","piel"],"citronela":["estres","animo","respira","musculos","digestion","piel","insectos"],"combava":["sueno","estres","animo","mente","piel","insectos","hogar"],"salvia-esclarea":["sueno","estres","animo","respira","digestion","heridas","insectos","ciclo"],"clavo":["sueno","respira","musculos","digestion","insectos","hogar"],"conyza":["animo","respira","musculos"],"copaiba":["estres","respira","musculos","digestion","piel","heridas","insectos"],"coriandro":["sueno","estres","cabeza","musculos","piel","boca","hogar"],"comino":["respira","digestion"],"cipres":["animo","respira","hogar","meditacion"],"davana":["estres","animo","cabeza","respira","musculos","piel","ciclo","hogar","meditacion"],"eneldo":["estres","respira","digestion"],"hyptis":["animo","respira","musculos","digestion","insectos","hongos","meditacion"],"elemi":["estres","musculos","piel","meditacion"],"eucalipto-azul":["energia","respira","musculos","insectos"],"eucalipto":["respira","musculos","hogar"],"eucalipto-radiata":["energia","respira","musculos","hogar"],"hinojo":["estres","musculos","digestion","piel","ciclo","hogar","meditacion"],"fragonia":["sueno","animo","respira","musculos","piel","cabello","ciclo","meditacion"],"incienso":["animo","mente","energia","respira","musculos","meditacion"],"incienso-frereana":["animo","musculos","piel","meditacion"],"geranio":["estres","animo","energia","piel","ciclo","hongos","boca","hogar"],"manzanilla-alemana":["sueno","estres","animo","cabeza","mente","musculos","digestion","piel"],"jengibre":["energia","respira","musculos","digestion","nauseas","ciclo"],"vara-de-oro":["estres","animo","respira","piel"],"abeto-grande":["estres","energia","respira","musculos","piel","insectos","meditacion"],"pomelo":["estres","animo","hogar"],"helicriso":["digestion","piel","circulacion"],"hinoki":["estres","animo","digestion"],"hong-kuai":["respira","hongos"],"hisopo":["estres","respira","musculos","digestion","piel","heridas","ciclo","meditacion"],"melisa-inca":["sueno","estres","cabeza","respira","musculos","digestion","nauseas","piel"],"limon-taiwan":["estres","animo","mente","energia","insectos","hogar","circulacion"],"jazmin":["sueno","estres","animo","energia","piel","ciclo"],"enebro":["estres","digestion","piel","meditacion","circulacion"],"kunzea":["animo","musculos","piel","insectos","hogar"],"laurel":["estres","respira","musculos","piel","boca","hogar"],"lavandin":["estres","respira","musculos","heridas"],"lavanda":["sueno","estres","animo","mente","respira","piel","heridas","cabello","ciclo","hogar"],"ledum":["estres","mente","respira","piel"],"limon":["estres","animo","mente","energia","digestion","nauseas","piel","circulacion"],"mirto-limon":["estres","animo","energia","respira"],"verbena":["sueno","estres","respira","musculos","digestion","circulacion"],"hierba-limon":["respira","musculos","digestion","nauseas","hongos","hogar","circulacion"],"lima":["animo","respira","musculos","piel","insectos","hogar"],"manuka":["sueno","estres","respira","musculos","piel","heridas","cabello","hongos"],"mejorana":["estres","cabeza","respira","musculos","digestion","ciclo","hongos"],"mastrante":["estres","cabeza","respira","hongos","meditacion"],"melisa":["sueno","estres","animo","digestion","nauseas","piel"],"ajedrea":["estres","energia"],"mirra":["animo","mente","piel","hongos","boca","meditacion"],"mirto":["animo","respira","musculos","piel"],"neroli":["sueno","estres","animo","digestion","piel"],"niaouli":["estres","animo","respira","digestion","piel"],"nuez-moscada":["estres","animo","mente","energia","musculos","digestion"],"ocotea":["estres","digestion","hogar"],"naranja":["sueno","estres","animo","piel","insectos"],"oregano":["energia","respira","musculos","digestion","hongos","hogar"],"oregano-ecuador":["estres","musculos","hogar"],"paicotea":["respira","musculos","boca"],"palmarosa":["estres","energia","digestion","piel","heridas","hongos"],"palo-santo":["estres","animo","cabeza","respira","musculos","piel","insectos","hongos","hogar"],"pachuli":["estres","animo","cabeza","respira","digestion","nauseas","piel","cabello","insectos"],"menta":["animo","cabeza","mente","respira","musculos","digestion","nauseas","piel","hongos","boca","circulacion"],"petitgrain":["sueno","estres","animo","mente","energia","musculos","piel","cabello"],"pino":["estres","energia","respira","musculos","piel","meditacion"],"ravintsara":["respira","piel","hogar","meditacion"],"manzanilla-romana":["sueno","estres","animo","mente","piel","hogar"],"rosa":["estres","animo","piel"],"romero":["estres","animo","mente","energia","respira","piel","cabello"],"palo-rosa":["animo","piel","hongos"],"ruda":["sueno","estres","cabeza","energia","respira","musculos","digestion","nauseas","piel","heridas","insectos","ciclo","meditacion"],"incienso-sacra":["estres","musculos","piel","insectos","boca","meditacion"],"salvia":["estres","animo","energia","insectos","ciclo"],"sandalo-hawaiano":["sueno","animo","respira","musculos","digestion","piel","meditacion"],"sandalo-sagrado":["sueno","animo","respira","musculos","digestion","piel","meditacion"],"jengibre-concha":["animo","energia","piel"],"hierbabuena":["animo","respira","digestion","nauseas"],"nardo":["sueno","estres","animo","cabeza","musculos","digestion","piel","ciclo","hongos"],"mandarina":["sueno","estres","animo","mente","digestion","piel","hogar","circulacion"],"estragon":["sueno","estres","animo","digestion","nauseas","ciclo"],"arbol":["piel","cabello","insectos","hongos","boca","hogar"],"tomillo":["estres","energia","respira","piel","cabello","insectos","hongos","hogar"],"tsuga":["estres","respira","musculos","piel"],"valeriana":["sueno","estres","animo","mente","ciclo","meditacion"],"vainilla":["sueno","estres","animo","digestion","piel","cabello","ciclo","boca"],"vetiver":["sueno","estres","animo","mente","musculos","piel","insectos","meditacion"],"gaulteria":["estres","musculos","digestion"]};
+OILS.forEach(function(o){ o.topics = USOS[o.id] || []; });
+function normTxt(t){ return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function topicsForQuery(q){
+  var n = normTxt(q).trim(); if (n.length < 3) return [];
+  return TOPICS.filter(function(t){ return t.syn.concat([t.label]).some(function(w){ var s = normTxt(w); return s.indexOf(n) === 0 || (' ' + n + ' ').indexOf(' ' + s + ' ') >= 0; }); }).map(function(t){ return t.id; });
+}
+var USOS_NOTE = 'Usos tradicionales recogidos por D. Gary Young y sus colaboradores (Seeds of Thyme, 2024). Información divulgativa: no es un consejo médico ni sustituye a un profesional sanitario. Uso externo: no ingerir.';
+var CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:''};
 function catResults(){
   var q = CAT.q.trim().toLowerCase();
   return OILS.filter(function(o){
     if (CAT.fam !== 'Todas') { if (o.family !== CAT.fam) return false; }
     if (CAT.part !== 'Todas') { if (o.part !== CAT.part) return false; }
     if (CAT.onlyFav) { if (!S.favs[o.id]) return false; }
-    if (q) { if ((o.name + ' ' + o.latin + ' ' + o.notes.join(' ') + ' ' + o.family).toLowerCase().indexOf(q) < 0) return false; }
+    if (CAT.topic) { if (o.topics.indexOf(CAT.topic) < 0) return false; }
+    if (q) {
+      var hit = normTxt(o.name + ' ' + o.latin + ' ' + o.notes.join(' ') + ' ' + o.family).indexOf(normTxt(q)) >= 0;
+      if (!hit) { var tq = topicsForQuery(q); hit = tq.some(function(t){ return o.topics.indexOf(t) >= 0; }); }
+      if (!hit) return false;
+    }
     return true;
   });
 }
@@ -2003,6 +2050,9 @@ function blendResults(){
 function renderCat(){
   var pr = document.getElementById('partRow'), fv = document.getElementById('onlyFav');
   if (pr) pr.hidden = CAT.kind === 'mezclas';
+  var tr = document.getElementById('topicRow'); if (tr) tr.hidden = CAT.kind === 'mezclas';
+  var tn = document.getElementById('topicNote');
+  if (tn) { var tqs = CAT.q ? topicsForQuery(CAT.q) : []; var show = CAT.kind === 'sencillos' ? (CAT.topic || tqs.length) : false; tn.hidden = !show; if (show) tn.innerHTML = '<b>' + (CAT.topic ? TOPIC[CAT.topic].label : tqs.map(function(t){ return TOPIC[t].label; }).join(' · ')) + '.</b> ' + USOS_NOTE; }
   if (fv) fv.hidden = CAT.kind === 'mezclas';
   document.querySelectorAll('[data-kind]').forEach(function(x){ x.setAttribute('aria-pressed', x.dataset.kind === CAT.kind); });
   if (CAT.kind === 'mezclas') {
@@ -2015,26 +2065,29 @@ function renderCat(){
     return;
   }
   var r = catResults(), g = document.getElementById('catGrid');
-  document.getElementById('catCount').textContent = r.length + (r.length === 1 ? ' esencia' : ' esencias');
+  document.getElementById('catCount').textContent = r.length + (r.length === 1 ? ' esencia' : ' esencias') + (CAT.topic ? ' · uso tradicional: ' + TOPIC[CAT.topic].label.toLowerCase() : '');
   g.innerHTML = r.length ? r.map(function(o){
     return '<article class="card"><button class="open" data-oil="' + o.id + '" aria-label="Abrir la ficha de ' + o.name + '"><div class="pic"><div class="plant">' + plant(o.id) + '</div>' + bottle(o) + '</div><div class="body"><h3>' + o.name + '</h3><div class="lat">' + o.latin + '</div><div class="tags"><span class="tag">' + o.family + '</span><span class="tag">' + o.partLong + '</span><span class="tag">' + o.method + '</span></div><p class="small" style="margin:10px 0 0;font-size:.86rem">' + o.aroma + '</p></div></button>' + favBtn(o.id) + '</article>';
   }).join('') : '<div class="empty"><h3 style="font-size:2rem">No hay esencias con estos filtros</h3><p class="lead" style="margin:10px auto 18px">Prueba con otro nombre o quita algún filtro.</p><button class="btn btn-s btn-sm" id="catReset">Quitar filtros</button></div>';
-  var rs = document.getElementById('catReset'); if (rs) rs.onclick = function(){ CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false}; go('aceites'); };
+  var rs = document.getElementById('catReset'); if (rs) rs.onclick = function(){ CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false, kind:'sencillos', topic:''}; go('aceites'); };
 }
 VIEWS.aceites = { html:function(opts){
   function chips(key, vals){ return vals.map(function(v){ return '<button class="chip" data-f="' + key + '" data-v="' + v + '" aria-pressed="' + (CAT[key] === v) + '">' + v + '</button>'; }).join(''); }
   return '<section class="wrap page-head" style="padding-bottom:8px"><span class="demo-pill">Biblioteca de demostración</span><h1 style="margin-top:14px">Biblioteca de <span class="it">aceites</span></h1><p class="lead">Arriba, tus favoritos en 3D. Debajo, el catálogo completo.</p></section>' +
   '<section class="wrap" id="libBox">' + libSection(opts && opts.sel) + '</section>' +
-  '<section class="wrap page-head cat-head" id="catalogo-lista"><span class="eyebrow">Catálogo</span><h2 class="lib-h" style="margin-top:6px">Todas las <span class="it">esencias</span></h2><p class="lead">Cada esencia con su planta, su perfil aromático, la parte que se utiliza y cómo se obtiene. Sin precios ni usos de salud. Las mezclas muestran su composición según la guía del fabricante.</p></section>' +
-  '<section class="wrap"><div class="kind-tabs" role="group" aria-label="Tipo de aceite"><button class="kind" data-kind="sencillos" aria-pressed="' + (CAT.kind === 'sencillos') + '">Aceites sencillos <span>' + OILS.length + '</span></button><button class="kind" data-kind="mezclas" aria-pressed="' + (CAT.kind === 'mezclas') + '">Mezclas <span>' + BLENDS.length + '</span></button></div><div class="toolbar"><label class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#603448" stroke-width="1.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><span class="sr">Buscar esencias</span><input id="catQ" type="search" value="' + CAT.q + '" placeholder="Busca por nombre, planta o aroma (p. ej., fresco)"></label><button class="chip" id="onlyFav" aria-pressed="' + CAT.onlyFav + '">Solo favoritos</button></div>' +
+  '<section class="wrap page-head cat-head" id="catalogo-lista"><span class="eyebrow">Catálogo</span><h2 class="lib-h" style="margin-top:6px">Todas las <span class="it">esencias</span></h2><p class="lead">Cada esencia con su planta, su perfil aromático, la parte que se utiliza, cómo se obtiene y sus usos tradicionales. Busca por nombre o por lo que necesitas: «insomnio», «dolor de cabeza», «estrés»… Las mezclas muestran su composición según la guía del fabricante.</p></section>' +
+  '<section class="wrap"><div class="kind-tabs" role="group" aria-label="Tipo de aceite"><button class="kind" data-kind="sencillos" aria-pressed="' + (CAT.kind === 'sencillos') + '">Aceites sencillos <span>' + OILS.length + '</span></button><button class="kind" data-kind="mezclas" aria-pressed="' + (CAT.kind === 'mezclas') + '">Mezclas <span>' + BLENDS.length + '</span></button></div><div class="toolbar"><label class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#603448" stroke-width="1.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><span class="sr">Buscar esencias</span><input id="catQ" type="search" value="' + CAT.q + '" placeholder="Busca un aceite o lo que necesitas (p. ej., insomnio)"></label><button class="chip" id="onlyFav" aria-pressed="' + CAT.onlyFav + '">Solo favoritos</button></div>' +
+  '<div class="toolbar topic-row" id="topicRow"><span class="small" style="min-width:110px">¿Para qué?</span><div class="filters"><button class="chip" data-topic="" aria-pressed="' + (!CAT.topic) + '">Todos</button>' + TOPICS.map(function(t){ return '<button class="chip" data-topic="' + t.id + '" aria-pressed="' + (CAT.topic === t.id) + '">' + t.label + '</button>'; }).join('') + '</div></div>' +
   '<div class="toolbar"><span class="small" style="min-width:110px">Familia</span><div class="filters">' + chips('fam',['Todas','Floral','Herbal','Cítrico','Amaderado','Especiado','Resinoso']) + '</div></div>' +
   '<div class="toolbar" id="partRow"><span class="small" style="min-width:110px">Parte de la planta</span><div class="filters">' + chips('part',['Todas','Flor','Hoja','Fruto','Semilla','Madera','Raíz','Corteza','Resina']) + '</div></div>' +
-  '<p class="small" id="catCount" aria-live="polite" style="margin:0 0 16px"></p><div class="grid" id="catGrid"></div></section>';
+  '<p class="topic-note" id="topicNote" hidden></p><p class="small" id="catCount" aria-live="polite" style="margin:0 0 16px"></p><div class="grid" id="catGrid"></div></section>';
 }, mount:function(opts){
   LIB_CLEAN = mountLibrary(); bindToCat();
+  if (opts && opts.cat) setTimeout(function(){ var c = document.getElementById('catalogo-lista'); if (c) c.scrollIntoView(); }, 40);
   renderCat();
   document.getElementById('catQ').addEventListener('input', function(e){ CAT.q = e.target.value; renderCat(); });
   document.querySelectorAll('[data-kind]').forEach(function(b){ b.addEventListener('click', function(){ CAT.kind = b.dataset.kind; renderCat(); }); });
+  document.querySelectorAll('[data-topic]').forEach(function(b){ b.addEventListener('click', function(){ CAT.topic = b.dataset.topic; document.querySelectorAll('[data-topic]').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); track('Uso', CAT.topic || 'todos'); renderCat(); }); });
   document.getElementById('onlyFav').addEventListener('click', function(e){ CAT.onlyFav = !CAT.onlyFav; e.currentTarget.setAttribute('aria-pressed', CAT.onlyFav); renderCat(); });
   document.querySelectorAll('[data-f]').forEach(function(b){ b.addEventListener('click', function(){ CAT[b.dataset.f] = b.dataset.v; document.querySelectorAll('[data-f="' + b.dataset.f + '"]').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); renderCat(); }); });
   return function(){ clearTimeout(LIB_T); if (LIB_CLEAN) { LIB_CLEAN(); LIB_CLEAN = null; } };
