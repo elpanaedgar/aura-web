@@ -1,11 +1,13 @@
 name: Publicar AURĀ en demo.tuwebexpres.com/aura
 
+# Sin FTP: después de cada cambio en aura/, GitHub avisa al servidor y este
+# descarga la versión nueva (ver aura/actualizar.php). Requiere que el
+# repositorio sea público, porque el servidor descarga sin contraseña.
 on:
   push:
     branches: [main]
     paths:
       - 'aura/**'
-      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 concurrency:
@@ -13,31 +15,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  publicar:
     runs-on: ubuntu-latest
-    env:
-      HAS_FTP: ${{ secrets.FTP_SERVER != '' }}
     steps:
-      - name: Aviso si faltan los datos FTP
-        if: env.HAS_FTP != 'true'
-        run: echo "Faltan los secretos FTP_SERVER, FTP_USERNAME y FTP_PASSWORD. No se publica nada."
-
-      - name: Descargar el repositorio
-        if: env.HAS_FTP == 'true'
-        uses: actions/checkout@v4
-
-      - name: Subir por FTP solo los archivos que han cambiado
-        if: env.HAS_FTP == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          security: loose
-          local-dir: ./aura/
-          server-dir: ./
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.DS_Store
+      - name: Avisar al servidor para que descargue la versión nueva
+        run: |
+          sleep 5
+          for i in 1 2 3; do
+            code=$(curl -s -o respuesta.txt -w '%{http_code}' --max-time 120 "https://demo.tuwebexpres.com/aura/actualizar.php?sha=${GITHUB_SHA}")
+            cat respuesta.txt; echo
+            if [ "$code" = "200" ]; then exit 0; fi
+            if [ "$code" = "404" ]; then echo "::error::Falta subir aura/actualizar.php al servidor (una sola vez)."; exit 1; fi
+            echo "Intento $i: respuesta $code. Reintentando..."; sleep 20
+          done
+          echo "::error::El servidor no pudo actualizarse (última respuesta $code)."; exit 1
