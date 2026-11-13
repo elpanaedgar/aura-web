@@ -587,6 +587,9 @@ main:focus{outline:none}
 .blend-ing{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .blend-ing .chip{min-height:36px;font-size:.98rem}
 .chip.off{opacity:.6;cursor:default;border-style:dashed}
+.bottle.bl{display:inline-block;line-height:0;vertical-align:bottom}
+.bottle.bl img{width:100%;height:auto;display:block}
+.bottle.bl .blab{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 /* Pie */
 footer{margin-top:120px;padding-block:50px calc(40px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 footer .cols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:30px;align-items:flex-start}
@@ -1203,12 +1206,34 @@ function glyph(id, c){
     naranja:'<circle cx="0" cy="2" r="10" fill="' + c + '"/><path d="' + leafPath(9,3.4) + '" fill="#6E8A5A" transform="translate(2 -8) rotate(30)"/>',
     incienso:'<g fill="' + c + '"><path d="M-5 -6 c4 3 4 9 0 9 c-4 0 -4 -6 0 -9z"/><path d="M5 0 c4 3 4 9 0 9 c-4 0 -4 -6 0 -9z"/><path d="M-2 6 c3 2 3 7 0 7 c-3 0 -3 -5 0 -7z"/></g>',
     eucalipto:'<path d="M-4 16 C 0 4, 0 -6, 6 -14" stroke="#9A8A7A" stroke-width="1" fill="none"/><g fill="' + c + '"><circle cx="-4" cy="8" r="4"/><circle cx="4" cy="0" r="4"/><circle cx="-1" cy="-7" r="3.4"/><circle cx="6" cy="-13" r="2.6"/></g>',
-    arbol:'<path d="M0 16 V-14" stroke="' + c + '" stroke-width="1"/><g stroke="' + c + '" stroke-width="1.4" stroke-linecap="round"><path d="M0 10 l-6 -5M0 10 l6 -5M0 3 l-6 -5M0 3 l6 -5M0 -4 l-5 -5M0 -4 l5 -5M0 -10 l-4 -4M0 -10 l4 -4"/></g>'
+    arbol:'<path d="M0 16 V-14" stroke="' + c + '" stroke-width="1"/><g stroke="' + c + '" stroke-width="1.4" stroke-linecap="round"><path d="M0 10 l-6 -5M0 10 l6 -5M0 3 l-6 -5M0 3 l6 -5M0 -4 l-5 -5M0 -4 l5 -5M0 -10 l-4 -4M0 -10 l4 -4"/></g>',
+    conifera:'<path d="M0 16 V-15" stroke="#7A5A44" stroke-width="1.1"/><g stroke="' + c + '" stroke-width="1.3" stroke-linecap="round"><path d="M0 10 l-9 -3M0 10 l9 -3M0 4 l-8 -3M0 4 l8 -3M0 -2 l-7 -3M0 -2 l7 -3M0 -8 l-5 -3M0 -8 l5 -3"/></g>',
+    umbela:'<g stroke="#7E9A62" stroke-width="1" fill="none"><path d="M0 16 V-2"/><path d="M0 -2 L-9 -10M0 -2 L-4 -13M0 -2 L4 -13M0 -2 L9 -10"/></g><g fill="' + c + '"><circle cx="-9" cy="-10" r="2.4"/><circle cx="-4" cy="-13" r="2.4"/><circle cx="4" cy="-13" r="2.4"/><circle cx="9" cy="-10" r="2.4"/><circle cx="0" cy="-12" r="2.2"/></g>',
+    flor:'<path d="M0 16 V0" stroke="#6E8A5A" stroke-width="1.2"/><g fill="' + c + '" opacity=".85"><ellipse cx="0" cy="-12" rx="2.4" ry="5"/><ellipse cx="0" cy="2" rx="2.4" ry="5" transform="rotate(0)"/><ellipse cx="-7" cy="-5" rx="5" ry="2.4"/><ellipse cx="7" cy="-5" rx="5" ry="2.4"/><ellipse cx="-5" cy="-10" rx="2.2" ry="4.4" transform="rotate(-45 -5 -10)"/><ellipse cx="5" cy="-10" rx="2.2" ry="4.4" transform="rotate(45 5 -10)"/><ellipse cx="-5" cy="0" rx="2.2" ry="4.4" transform="rotate(45 -5 0)"/><ellipse cx="5" cy="0" rx="2.2" ry="4.4" transform="rotate(-45 5 0)"/></g><circle cx="0" cy="-5" r="3.4" fill="#E3B54A"/>',
+    especia:'<path d="M0 16 C -1 6, 2 -4, 0 -14" stroke="#7A5A3E" stroke-width="1.1" fill="none"/><g fill="#6E8A5A"><path d="' + leafPath(9,3.4) + '" transform="translate(0 8) rotate(-60)"/><path d="' + leafPath(9,3.4) + '" transform="translate(0 2) rotate(60)"/></g><g fill="' + c + '"><circle cx="5" cy="-8" r="2.6"/><circle cx="8" cy="-4" r="2.6"/><circle cx="3" cy="-3" r="2.6"/><circle cx="-5" cy="-10" r="2.4"/><circle cx="-7" cy="-6" r="2.4"/></g>',
+    floral:'<path d="M0 16 V2" stroke="#6E8A5A" stroke-width="1.2"/><path d="' + leafPath(9,4) + '" fill="#6E8A5A" transform="translate(0 10) rotate(-55)"/><g fill="' + c + '"><ellipse cx="0" cy="-12" rx="3.6" ry="5.4"/><ellipse cx="0" cy="-12" rx="3.6" ry="5.4" transform="rotate(72 0 -5)"/><ellipse cx="0" cy="-12" rx="3.6" ry="5.4" transform="rotate(144 0 -5)"/><ellipse cx="0" cy="-12" rx="3.6" ry="5.4" transform="rotate(216 0 -5)"/><ellipse cx="0" cy="-12" rx="3.6" ry="5.4" transform="rotate(288 0 -5)"/></g><circle cx="0" cy="-5" r="2.2" fill="#F4D58A"/>'
   };
   return m[id];
 }
 var BOTTLES = __BOTTLES__;
+function esc2(t){ return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function labelSVG(o){
+  var key = glyph(o.id, '#000') ? o.id : (o.look || 'flor');
+  var col = o.color || '#845488';
+  var name = o.name, nlen = name.length, fs = Math.min(27, Math.floor(300 / Math.max(nlen, 1)));
+  if (fs < 13) fs = 13;
+  var lat = o.latin || '', lfs = Math.min(12, Math.floor(270 / Math.max(lat.length, 1)));
+  if (lfs < 7) lfs = 7;
+  return '<svg class="blab" viewBox="0 0 196 466" aria-hidden="true"><g text-anchor="middle" fill="#3F2C35">' +
+    '<text x="99" y="233" font-family="Cormorant Garamond, Georgia, serif" font-weight="500" font-size="23" letter-spacing="4">AURĀ</text>' +
+    '<g transform="translate(97 284) scale(1.6)">' + glyph(key, col) + '</g>' +
+    '<text x="97" y="348" font-family="Cormorant Garamond, Georgia, serif" font-weight="500" font-size="' + fs + '"' + (nlen > 12 ? ' textLength="' + Math.min(160, nlen * fs * 0.48) + '" lengthAdjust="spacingAndGlyphs"' : '') + '>' + esc2(name) + '</text>' +
+    '<text x="97.7" y="375" font-family="Jost, Arial, sans-serif" font-weight="500" font-size="9.6" letter-spacing="1.4" fill="#4A3540">' + (o.mix ? 'MEZCLA' : 'ACEITE ESENCIAL') + '</text>' +
+    '<text x="97" y="391" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="' + lfs + '" fill="#6B5560">' + esc2(lat) + '</text>' +
+  '</g></svg>';
+}
 function bottle(o, w){
+  if (!BOTTLES[o.id]) return '<span class="bottle bl" role="img" aria-label="Frasco ' + (o.mix ? 'de la mezcla ' : 'de aceite esencial de ') + esc2(o.name) + ', diseño conceptual AURĀ"' + (w ? ' style="width:' + w + 'px"' : '') + '><img src="' + BOTTLES.base + '" width="196" height="466" alt="" decoding="async">' + labelSVG(o) + '</span>';
   return '<img class="bottle" src="' + (BOTTLES[o.id] || BOTTLES.base) + '" width="196" height="466" alt="Frasco de aceite esencial de ' + o.name + ', diseño conceptual AURĀ" decoding="async"' + (w ? ' style="width:' + w + 'px"' : '') + '>';
 }
 var ICON = {
@@ -1840,7 +1865,7 @@ function openBlend(id){
   var lead = OIL[b.lead] || OILS[0];
   root.innerHTML = '<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT"><div class="panel">' +
    '<button class="icon-btn close" data-close aria-label="Cerrar ficha">' + ICON.close + '</button>' +
-   '<div class="vis"><div class="plant">' + plant(lead.id) + '</div><img class="bottle-img" src="' + BOTTLES.base + '" alt="" aria-hidden="true"></div>' +
+   '<div class="vis"><div class="plant">' + plant(lead.id) + '</div>' + bottle({id:'', name:b.name, latin:'Mezcla de ' + b.ing.length + ' aceites', mix:true, look:lead.look || lead.id, color:lead.color}) + '</div>' +
    '<div class="info"><span class="demo-pill">Mezcla · ficha de demostración</span>' +
    '<h2 id="dlgT" style="font-size:3.2rem;margin-top:12px">' + b.name + '</h2><div class="it" style="font-size:1.3rem">' + b.aroma + '</div>' +
    '<b style="font-weight:500;color:var(--plum);display:block;margin-top:18px">Composición (' + b.ing.length + ')</b>' +
@@ -1887,7 +1912,7 @@ function renderCat(){
     document.getElementById('catCount').textContent = rb.length + (rb.length === 1 ? ' mezcla' : ' mezclas') + ' · composición según la guía del fabricante';
     gb.innerHTML = rb.length ? rb.map(function(b){
       var lead = OIL[b.lead] || OILS[0];
-      return '<article class="card"><button class="open" data-blend="' + b.id + '" aria-label="Abrir la ficha de la mezcla ' + b.name + '"><div class="pic"><div class="plant">' + plant(lead.id) + '</div>' + bottle({id:'', name:b.name}) + '</div><div class="body"><h3>' + b.name + '</h3><div class="lat">Mezcla de ' + b.ing.length + ' aceites</div><div class="tags">' + b.fams.slice(0, 2).map(function(f){ return '<span class="tag">' + f + '</span>'; }).join('') + '</div><p class="small" style="margin:10px 0 0;font-size:.86rem">' + b.ing.slice(0, 5).map(function(x){ return x.n; }).join(', ') + (b.ing.length > 5 ? '…' : '') + '</p></div></button></article>';
+      return '<article class="card"><button class="open" data-blend="' + b.id + '" aria-label="Abrir la ficha de la mezcla ' + b.name + '"><div class="pic"><div class="plant">' + plant(lead.id) + '</div>' + bottle({id:'', name:b.name, latin:'Mezcla de ' + b.ing.length + ' aceites', mix:true, look:lead.look || lead.id, color:lead.color}) + '</div><div class="body"><h3>' + b.name + '</h3><div class="lat">Mezcla de ' + b.ing.length + ' aceites</div><div class="tags">' + b.fams.slice(0, 2).map(function(f){ return '<span class="tag">' + f + '</span>'; }).join('') + '</div><p class="small" style="margin:10px 0 0;font-size:.86rem">' + b.ing.slice(0, 5).map(function(x){ return x.n; }).join(', ') + (b.ing.length > 5 ? '…' : '') + '</p></div></button></article>';
     }).join('') : '<div class="empty"><h3 style="font-size:2rem">No hay mezclas con estos filtros</h3><p class="lead" style="margin:10px auto 0">Prueba con otro nombre o ingrediente.</p></div>';
     return;
   }
