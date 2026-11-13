@@ -587,9 +587,9 @@ main:focus{outline:none}
 .blend-ing{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .blend-ing .chip{min-height:36px;font-size:.98rem}
 .chip.off{opacity:.6;cursor:default;border-style:dashed}
-.bottle.bl{display:inline-block;line-height:0;vertical-align:bottom}
+.bottle.bl{position:relative;display:inline-block;line-height:0;vertical-align:bottom}
 .bottle.bl img{width:100%;height:auto;display:block}
-.bottle.bl .blab{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.bottle.bl .blab{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 /* Pie */
 footer{margin-top:120px;padding-block:50px calc(40px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 footer .cols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:30px;align-items:flex-start}
@@ -638,6 +638,10 @@ footer p{margin:0}
 img.bottle{height:auto}
 .dlg .vis{overflow:hidden}
 .porthole .center .bottle{width:100%}
+/* Biblioteca: 3D arriba, catálogo abajo */
+.lib-h{font-size:clamp(2rem,4vw,2.8rem)}
+.lib-top{margin:26px 0 18px}.lib-top .lead{margin-top:8px;max-width:640px}
+.cat-head{padding-top:56px;padding-bottom:18px;scroll-margin-top:84px}
 /* Selector Catálogo / 3D */
 .lib-switch{display:inline-flex;gap:4px;padding:4px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.72)}
 .lib-switch button{border:0;background:transparent;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;font-size:1rem;color:var(--plum);transition:background .25s,color .25s}
@@ -1282,6 +1286,7 @@ function toggleFav(id){
   toast(S.favs[id] ? OIL[id].name + ' guardado en favoritos' : OIL[id].name + ' quitado de favoritos');
   document.querySelectorAll('[data-fav="' + id + '"]').forEach(function(b){ var on = !!S.favs[id]; b.setAttribute('aria-pressed', on); b.setAttribute('aria-label', (on ? 'Quitar ' : 'Guardar ') + OIL[id].name + (on ? ' de favoritos' : ' en favoritos')); });
   if (S.view === 'mi-espacio') renderSpaceTab();
+  if (S.view === 'aceites' || S.view === 'biblioteca') { clearTimeout(LIB_T); LIB_T = setTimeout(remountLib, 350); }
 }
 function toggleRitual(id){
   S.rituals[id] = !S.rituals[id]; if (!S.rituals[id]) delete S.rituals[id];
@@ -1339,7 +1344,7 @@ function openOil(id){
    '<dl class="facts"><div><dt>Familia aromática</dt><dd>' + o.family + '</dd></div>' + (o.botFam ? '<div><dt>Familia botánica</dt><dd>' + o.botFam + '</dd></div>' : '') + '<div><dt>Parte de la planta</dt><dd>' + o.partLong + '</dd></div><div><dt>Método de extracción</dt><dd>' + o.method + '</dd></div><div' + (o.botFam ? ' style="grid-column:1/-1"' : '') + '><dt>Origen botánico</dt><dd>' + o.origin + '</dd></div>' + (o.cons ? '<div style="grid-column:1/-1"><dt>Componentes principales</dt><dd>' + o.cons + '</dd></div>' : '') + '</dl>' +
    '<b style="font-weight:500;color:var(--plum)">Formas de uso</b><ul style="margin:6px 0 0;padding-left:20px">' + o.uses.map(function(u){ return '<li>' + u + '</li>'; }).join('') + '</ul>' +
    '<div class="caution"><b style="font-weight:600">Precauciones.</b> ' + o.caution + ' En embarazo, lactancia, con niños o si tomas medicación, consulta antes con un profesional sanitario.</div>' +
-   '<div class="acts">' + favBtn(id).replace('class="fav"','class="fav" style="width:50px;height:50px"') + (LIB_IDS.indexOf(id) >= 0 ? '<button class="btn btn-p btn-sm" data-go="biblioteca" data-opt="' + id + '">Ver en 3D</button>' : '') + '<button class="btn btn-s btn-sm" data-ask="' + (id === 'lavanda' ? 'lavandin' : 'diluir') + '">Preguntar a Olia</button></div>' +
+   '<div class="acts">' + favBtn(id).replace('class="fav"','class="fav" style="width:50px;height:50px"') + (S.favs[id] ? '<button class="btn btn-p btn-sm" data-go="aceites" data-opt="' + id + '">Ver en 3D</button>' : '') + '<button class="btn btn-s btn-sm" data-ask="' + (id === 'lavanda' ? 'lavandin' : 'diluir') + '">Preguntar a Olia</button></div>' +
    '<p class="small" style="margin-top:14px">' + (o.review ? 'Datos técnicos de referencia, pendientes de revisión especializada. Sin usos de salud ni ingestión.' : 'Contenido orientativo de demostración, pendiente de revisión con fuentes autorizadas.') + '</p></div></div></div>';
   var d = root.querySelector('.dlg'), prev = document.activeElement;
   function close(){ root.innerHTML = ''; document.removeEventListener('keydown', key); if (prev) prev.focus(); }
@@ -1410,7 +1415,7 @@ function auraKit(T, renderer){
     var f2 = 12 * K; x.font = 'italic 400 ' + f2 + 'px "Cormorant Garamond", Georgia, serif'; while (x.measureText(o.latin).width > 150 * K) { f2 -= 2; x.font = 'italic 400 ' + f2 + 'px "Cormorant Garamond", Georgia, serif'; }
     x.fillStyle = '#6B5560'; x.fillText(o.latin, W / 2, 200 * K);
     tex.needsUpdate = true;
-    svgToImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 40 40" width="400" height="400">' + glyph(o.id, o.color) + '</svg>').then(function(img){ if (img) { var s = 52 * K; x.drawImage(img, W / 2 - s / 2, 95 * K - s / 2, s, s); tex.needsUpdate = true; } });
+    svgToImage('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 40 40" width="400" height="400">' + (glyph(o.id, o.color) || glyph(o.look || 'flor', o.color)) + '</svg>').then(function(img){ if (img) { var s = 52 * K; x.drawImage(img, W / 2 - s / 2, 95 * K - s / 2, s, s); tex.needsUpdate = true; } });
   }
   var all = [];
   function makeBottle(id){
@@ -1517,7 +1522,7 @@ VIEWS.inicio = { html:function(){
         '<div class="ctas"><button class="btn btn-p" data-go="aceites">Explorar aceites <span class="ar" aria-hidden="true">→</span></button><button class="btn btn-s" data-go="sobre">Descubrir AURĀ</button></div>' +
       '</div>' +
       '<div class="j-panel" data-a=".15" data-b=".5"><span class="eyebrow">Una esencia, una planta</span><h2 class="j-big" id="jOilName">Lavanda</h2><div class="it j-latin" id="jOilLatin"></div><p class="lead" id="jOilAroma" style="margin:14px 0 18px"></p><div class="j-dots" id="jDots">' + OILS.map(function(o){ return '<i title="' + o.name + '"></i>'; }).join('') + '</div><div class="ctas-l"><button class="btn btn-p btn-sm" id="jOilOpen" data-oil="lavanda">Ver la ficha</button><button class="btn btn-s btn-sm" data-go="aceites">Todas las esencias</button></div></div>' +
-      '<div class="j-panel" data-a=".53" data-b=".71"><span class="eyebrow">Biblioteca · vista 3D</span><h2 class="j-big">Una biblioteca <span class="it">que se recorre</span></h2><p class="lead" style="margin:14px 0 22px">Los siete frascos forman un arco a tu alrededor. Elige uno, gíralo y descubre su planta.</p><div class="ctas-l"><button class="btn btn-p" data-go="biblioteca">Ver en 3D <span class="ar" aria-hidden="true">→</span></button><button class="btn btn-s" data-go="aceites">Ver el catálogo</button></div></div>' +
+      '<div class="j-panel" data-a=".53" data-b=".71"><span class="eyebrow">Biblioteca</span><h2 class="j-big">Una biblioteca <span class="it">que se recorre</span></h2><p class="lead" style="margin:14px 0 22px">Tus esencias favoritas forman un arco en 3D, y debajo tienes el catálogo completo.</p><button class="btn btn-p" data-go="aceites">Entrar en la biblioteca <span class="ar" aria-hidden="true">→</span></button></div>' +
       '<div class="j-panel" data-a=".74" data-b=".87"><span class="eyebrow">Rituales</span><h2 class="j-big">A lo largo <span class="it">del día</span></h2><div class="j-rits" id="jRits">' + RITUALS.map(function(r){ return '<button data-go="rituales" data-opt="' + r.id + '"><b>' + r.name + '</b><span>' + r.when + ' · ' + r.min + ' min</span></button>'; }).join('') + '</div></div>' +
       '<div class="j-panel" data-a=".89" data-b="2"><span class="eyebrow">Olia</span><h2 class="j-big">Conversa <span class="it">con Olia</span></h2><p class="lead" style="margin:14px 0 18px">La asistente botánica de AURĀ. En esta demo responde con contenidos preparados.</p><div class="qs"><button class="chip" data-ask="lavandin">¿Lavanda o lavandín?</button><button class="chip" data-ask="familias">Familias aromáticas</button><button class="chip" data-ask="diluir">¿Cómo se diluye?</button></div></div>' +
       '<div class="j-hint" id="jHint" aria-hidden="true">Desliza para descubrir<span>↓</span></div>' +
@@ -1703,26 +1708,42 @@ function buildJourney(stage, progress, paintPanels, setOilPanel){
   }
   var l = document.getElementById('jLoad'); if (l) l.remove();
   frame();
-  return {dispose:function(){ cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener('pointermove', onMove); renderer.dispose(); if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); }};
+  return {dispose:function(){ cancelAnimationFrame(raf); ro.disconnect(); window.removeEventListener('pointermove', onMove); renderer.dispose(); try { renderer.forceContextLoss(); } catch(e){} if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); }};
 }
 
 /* ---------- BIBLIOTECA 3D: los siete frascos en arco ---------- */
-var LIB_IDS = ['lavanda','menta','limon','naranja','incienso','eucalipto','arbol'];
-function libSwitch(act){
-  return '<div class="lib-switch" role="group" aria-label="Forma de ver la biblioteca"><button data-go="aceites" aria-pressed="' + (act === 'cat') + '">' +
-    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Catálogo</button>' +
-    '<button data-go="biblioteca" aria-pressed="' + (act === '3d') + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg>Vista 3D</button></div>';
+var LIB_FEATURED = ['lavanda','menta','limon','naranja','incienso','eucalipto','arbol'], LIB_MAX = 12;
+var LIB_IDS = LIB_FEATURED.slice(), LIB_FAVMODE = false;
+function libIds(sel){
+  var f = OILS.filter(function(o){ return S.favs[o.id]; }).map(function(o){ return o.id; });
+  LIB_FAVMODE = f.length > 0;
+  if (sel) { var k = f.indexOf(sel); if (k >= LIB_MAX) { f.splice(k, 1); f.unshift(sel); } }
+  LIB_IDS = LIB_FAVMODE ? f.slice(0, LIB_MAX) : LIB_FEATURED.slice();
+  if (sel) { var j = LIB_IDS.indexOf(sel); if (j >= 0) S.libIdx = j; }
+  if (!(S.libIdx < LIB_IDS.length)) S.libIdx = 0;
+  return LIB_IDS;
 }
-VIEWS.biblioteca = { html:function(opts){
-  if (opts.sel) { var i = LIB_IDS.indexOf(opts.sel); if (i >= 0) S.libIdx = i; }
-  return '<section class="wrap page-head">' + libSwitch('3d') + '<h1 style="margin-top:18px">Biblioteca <span class="it">en 3D</span></h1><p class="lead">Una selección de siete esencias para recorrer en tres dimensiones. Los siete frascos forman un arco. Desliza para recorrerlo, toca un frasco para traerlo delante y arrastra el del centro para girarlo.</p></section>' +
-  '<section class="wrap"><div class="lib">' +
-    '<div class="stage3d" id="stage"><span class="badge3d demo-pill" id="b3d">Modelo 3D · frasco conceptual AURĀ</span><div class="lib-name" id="libName" aria-hidden="true"></div><div class="loading" id="libLoad">Preparando la biblioteca…</div><span class="hint" id="libHint">Desliza para recorrer · arrastra el frasco central para girarlo</span></div>' +
+function libSection(sel){
+  libIds(sel);
+  var n = LIB_IDS.length, extra = OILS.filter(function(o){ return S.favs[o.id]; }).length - n;
+  var head = '<h2 class="lib-h">Tus favoritos <span class="it">en 3D</span></h2><p class="lead">' + (LIB_FAVMODE ?
+    (n === 1 ? 'Tu esencia favorita, en tres dimensiones.' : 'Tus ' + n + ' esencias favoritas forman un arco.') + ' Desliza para recorrerlo, toca un frasco para traerlo delante y arrastra el del centro para girarlo.' + (extra > 0 ? ' Se muestran ' + LIB_MAX + ' de tus ' + (n + extra) + ' favoritas.' : '') :
+    'Aún no has guardado ninguna esencia. Mientras tanto, aquí tienes siete destacadas. Toca el corazón ♡ de cualquier aceite del catálogo y aparecerá aquí, en 3D.') + '</p>';
+  return '<div class="lib-top">' + head + '</div><div class="lib">' +
+    '<div class="stage3d" id="stage"><span class="badge3d demo-pill" id="b3d">' + (LIB_FAVMODE ? 'Tus favoritos · modelo 3D conceptual' : 'Destacadas · modelo 3D conceptual') + '</span><div class="lib-name" id="libName" aria-hidden="true"></div><div class="loading" id="libLoad">Preparando la biblioteca…</div><span class="hint" id="libHint">Desliza para recorrer · arrastra el frasco central para girarlo</span></div>' +
     '<aside class="side" aria-live="polite" id="libSide"></aside>' +
   '</div>' +
-  '<div class="picker"><button class="icon-btn" id="libPrev" aria-label="Esencia anterior">←</button><span class="small" id="libCount" style="min-width:90px;text-align:center"></span><button class="icon-btn" id="libNext" aria-label="Esencia siguiente">→</button><span style="flex:1"></span><button class="chip" id="libList" aria-pressed="false">Ver los 7 en lista</button></div>' +
-  '<div id="libCatalog" hidden style="margin-top:20px"><div class="catalog-list">' + LIB_IDS.map(function(id, i){ return '<button data-lib="' + i + '">' + bottle(OIL[id], 34) + '<span><b style="font-weight:500;font-size:1.2rem;color:var(--plum);display:block">' + OIL[id].name + '</b><span class="it" style="font-size:.95rem">' + OIL[id].latin + '</span></span></button>'; }).join('') + '</div></div></section>';
-}, mount:function(){ return mountLibrary(); }};
+  '<div class="picker"><button class="icon-btn" id="libPrev" aria-label="Esencia anterior">←</button><span class="small" id="libCount" style="min-width:90px;text-align:center"></span><button class="icon-btn" id="libNext" aria-label="Esencia siguiente">→</button><span style="flex:1"></span><button class="chip" id="libList" aria-pressed="false">Ver en lista</button><button class="chip" id="toCat">Ir al catálogo ↓</button></div>' +
+  '<div id="libCatalog" hidden style="margin-top:20px"><div class="catalog-list">' + LIB_IDS.map(function(id, i){ return '<button data-lib="' + i + '">' + bottle(OIL[id], 34) + '<span><b style="font-weight:500;font-size:1.2rem;color:var(--plum);display:block">' + OIL[id].name + '</b><span class="it" style="font-size:.95rem">' + OIL[id].latin + '</span></span></button>'; }).join('') + '</div></div>';
+}
+var LIB_CLEAN = null, LIB_T = 0;
+function bindToCat(){ var tc = document.getElementById('toCat'); if (tc) tc.onclick = function(){ var c = document.getElementById('catalogo-lista'); if (c) c.scrollIntoView({behavior:REDUCED ? 'auto' : 'smooth'}); }; }
+function remountLib(){
+  var box = document.getElementById('libBox'); if (!box) return;
+  if (LIB_CLEAN) { LIB_CLEAN(); LIB_CLEAN = null; }
+  box.innerHTML = libSection(); LIB_CLEAN = mountLibrary(); bindToCat();
+}
+VIEWS.biblioteca = { html:function(opts){ return VIEWS.aceites.html(opts); }, mount:function(opts){ return VIEWS.aceites.mount(opts); }};
 
 function libSide(){
   var o = OIL[LIB_IDS[S.libIdx]];
@@ -1741,7 +1762,7 @@ function fallbackLib(stage, msg){
 function mountLibrary(){
   var stage = document.getElementById('stage'), alive = true, api = null;
   function commit(i){
-    i = ((i % 7) + 7) % 7; if (i === S.libIdx) return;
+    var L = LIB_IDS.length; i = ((i % L) + L) % L; if (i === S.libIdx) return;
     S.libIdx = i; libSide(); track('Biblioteca', OIL[LIB_IDS[i]].name);
     if (!api) { if (stage.querySelector('.fallback2d')) fallbackLib(stage); }
   }
@@ -1762,7 +1783,7 @@ function mountLibrary(){
 }
 
 function buildLibrary(stage, commit){
-  var T = window.THREE, mobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches, TAU = Math.PI * 2, N = 7, STEP = TAU / N;
+  var T = window.THREE, mobile = matchMedia('(max-width: 760px), (pointer: coarse)').matches, TAU = Math.PI * 2, N = LIB_IDS.length, STEP = TAU / Math.max(N, 5);
   var renderer = makeRenderer(T, mobile); stage.insertBefore(renderer.domElement, stage.firstChild);
   var kit = auraKit(T, renderer), scene = new T.Scene(), camera = new T.PerspectiveCamera(24, 1, .1, 100);
   // fondo fotográfico en capas
@@ -1821,7 +1842,7 @@ function buildLibrary(stage, commit){
     var front = wrapIdx(pos);
     if (!drag) { spinVel *= .93; spinY += spinVel; if (t - lastSpin > 2) { var home = Math.round(spinY / TAU) * TAU; spinY += (home - spinY) * Math.min(1, dt * 2); } }
     bottles.forEach(function(m, i){
-      var a = (i - pos) * STEP, x = Math.sin(a) * R * (narrow ? .78 : 1), z = Math.cos(a) * R - R;
+      var dI = i - pos; dI = dI - N * Math.round(dI / N); var a = dI * STEP, x = Math.sin(a) * R * (narrow ? .78 : 1), z = Math.cos(a) * R - R;
       m.position.set(x, 0, z); var s = 1 + Math.max(0, Math.cos(a)) * .12; m.scale.setScalar(s);
       m.rotation.y = (i === front ? spinY : 0) + (REDUCED ? 0 : Math.sin(t * .4 + i) * .08);
       m.material.uniforms.uAlpha.value = 1;
@@ -1836,7 +1857,7 @@ function buildLibrary(stage, commit){
     renderer.render(scene, camera);
   }
   frame();
-  return {goTo:goTo, dispose:function(){ cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); }};
+  return {goTo:goTo, dispose:function(){ cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); try { renderer.forceContextLoss(); } catch(e){} if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement); }};
 }
 
 /* ---------- ACEITES ---------- */
@@ -1931,19 +1952,23 @@ function renderCat(){
   }).join('') : '<div class="empty"><h3 style="font-size:2rem">No hay esencias con estos filtros</h3><p class="lead" style="margin:10px auto 18px">Prueba con otro nombre o quita algún filtro.</p><button class="btn btn-s btn-sm" id="catReset">Quitar filtros</button></div>';
   var rs = document.getElementById('catReset'); if (rs) rs.onclick = function(){ CAT = {q:'', fam:'Todas', part:'Todas', onlyFav:false}; go('aceites'); };
 }
-VIEWS.aceites = { html:function(){
+VIEWS.aceites = { html:function(opts){
   function chips(key, vals){ return vals.map(function(v){ return '<button class="chip" data-f="' + key + '" data-v="' + v + '" aria-pressed="' + (CAT[key] === v) + '">' + v + '</button>'; }).join(''); }
-  return '<section class="wrap page-head">' + libSwitch('cat') + '<span class="demo-pill" style="display:inline-flex;margin-top:18px">Catálogo de demostración</span><h1 style="margin-top:14px">Biblioteca de <span class="it">aceites</span></h1><p class="lead">Cada esencia con su planta, su perfil aromático, la parte que se utiliza y cómo se obtiene. Sin precios ni usos de salud. Las mezclas muestran su composición según la guía del fabricante.</p></section>' +
+  return '<section class="wrap page-head" style="padding-bottom:8px"><span class="demo-pill">Biblioteca de demostración</span><h1 style="margin-top:14px">Biblioteca de <span class="it">aceites</span></h1><p class="lead">Arriba, tus favoritos en 3D. Debajo, el catálogo completo.</p></section>' +
+  '<section class="wrap" id="libBox">' + libSection(opts && opts.sel) + '</section>' +
+  '<section class="wrap page-head cat-head" id="catalogo-lista"><span class="eyebrow">Catálogo</span><h2 class="lib-h" style="margin-top:6px">Todas las <span class="it">esencias</span></h2><p class="lead">Cada esencia con su planta, su perfil aromático, la parte que se utiliza y cómo se obtiene. Sin precios ni usos de salud. Las mezclas muestran su composición según la guía del fabricante.</p></section>' +
   '<section class="wrap"><div class="kind-tabs" role="group" aria-label="Tipo de aceite"><button class="kind" data-kind="sencillos" aria-pressed="' + (CAT.kind === 'sencillos') + '">Aceites sencillos <span>' + OILS.length + '</span></button><button class="kind" data-kind="mezclas" aria-pressed="' + (CAT.kind === 'mezclas') + '">Mezclas <span>' + BLENDS.length + '</span></button></div><div class="toolbar"><label class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#603448" stroke-width="1.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><span class="sr">Buscar esencias</span><input id="catQ" type="search" value="' + CAT.q + '" placeholder="Busca por nombre, planta o aroma (p. ej., fresco)"></label><button class="chip" id="onlyFav" aria-pressed="' + CAT.onlyFav + '">Solo favoritos</button></div>' +
   '<div class="toolbar"><span class="small" style="min-width:110px">Familia</span><div class="filters">' + chips('fam',['Todas','Floral','Herbal','Cítrico','Amaderado','Especiado','Resinoso']) + '</div></div>' +
   '<div class="toolbar" id="partRow"><span class="small" style="min-width:110px">Parte de la planta</span><div class="filters">' + chips('part',['Todas','Flor','Hoja','Fruto','Semilla','Madera','Raíz','Corteza','Resina']) + '</div></div>' +
   '<p class="small" id="catCount" aria-live="polite" style="margin:0 0 16px"></p><div class="grid" id="catGrid"></div></section>';
-}, mount:function(){
+}, mount:function(opts){
+  LIB_CLEAN = mountLibrary(); bindToCat();
   renderCat();
   document.getElementById('catQ').addEventListener('input', function(e){ CAT.q = e.target.value; renderCat(); });
   document.querySelectorAll('[data-kind]').forEach(function(b){ b.addEventListener('click', function(){ CAT.kind = b.dataset.kind; renderCat(); }); });
   document.getElementById('onlyFav').addEventListener('click', function(e){ CAT.onlyFav = !CAT.onlyFav; e.currentTarget.setAttribute('aria-pressed', CAT.onlyFav); renderCat(); });
   document.querySelectorAll('[data-f]').forEach(function(b){ b.addEventListener('click', function(){ CAT[b.dataset.f] = b.dataset.v; document.querySelectorAll('[data-f="' + b.dataset.f + '"]').forEach(function(x){ x.setAttribute('aria-pressed', x === b); }); renderCat(); }); });
+  return function(){ clearTimeout(LIB_T); if (LIB_CLEAN) { LIB_CLEAN(); LIB_CLEAN = null; } };
 }};
 
 /* ---------- RITUALES ---------- */
